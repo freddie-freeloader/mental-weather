@@ -1,5 +1,6 @@
 import { TextField, Slider, Button, Box, Typography, CircularProgress } from "@mui/material"
 import type { FieldApi } from "@tanstack/react-form"
+import MuiNumberField from "./MuiNumberField"
 
 // Type-safe props for TextField component
 interface TextFieldComponentProps {
@@ -40,7 +41,7 @@ interface NumberFieldComponentProps {
   label: string
   min?: number
   max?: number
-  step?: number | "any"
+  step?: number
   required?: boolean
 }
 
@@ -49,35 +50,30 @@ export function NumberFieldComponent({
   label,
   min,
   max,
-  step = "any",
+  step = 1,
   required = false
 }: NumberFieldComponentProps) {
   const hasErrors = field.state.meta.errors.length > 0
   const isTouched = field.state.meta.isTouched
 
   return (
-    <TextField
-      label={label}
-      type="number"
-      value={field.state.value}
-      onChange={(e) => {
-        const value = e.target.value === "" ? 0 : parseFloat(e.target.value)
-        field.handleChange(value)
-      }}
-      onBlur={field.handleBlur}
-      error={hasErrors && isTouched}
-      helperText={isTouched && hasErrors ? field.state.meta.errors.join(", ") : ""}
-      required={required}
-      fullWidth
-      margin="normal"
-      slotProps={{
-        htmlInput: {
-          min,
-          max,
-          step,
-        },
-      }}
-    />
+    <Box sx={{ mt: 2, mb: 1 }}>
+      <MuiNumberField
+        label={label}
+        value={field.state.value}
+        onValueChange={(value) => {
+          if (value !== null && value !== undefined) {
+            field.handleChange(value)
+          }
+        }}
+        min={min}
+        max={max}
+        step={step}
+        required={required}
+        error={hasErrors && isTouched}
+        helperText={isTouched && hasErrors ? field.state.meta.errors.join(", ") : ""}
+      />
+    </Box>
   )
 }
 

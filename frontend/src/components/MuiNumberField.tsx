@@ -10,9 +10,15 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 /**
+ * Copied from
+ * https://github.com/mui/material-ui/blob/03b18f436a1f5dd7fa0b0a35191a3d4960b50a17/docs/data/material/components/number-field/components/NumberField.tsx
+ * as recommended in the docs
+ */
+
+/**
  * This component is a placeholder for FormControl to correctly set the shrink label state on SSR.
  */
-function SSRInitialFilled(_: BaseNumberField.Root.Props) {
+function SSRInitialFilled(_props: BaseNumberField.Root.Props) {
   return null;
 }
 SSRInitialFilled.muiName = 'Input';
@@ -21,12 +27,14 @@ export default function NumberField({
   id: idProp,
   label,
   error,
+  helperText,
   size = 'medium',
   ...other
 }: BaseNumberField.Root.Props & {
   label?: React.ReactNode;
   size?: 'small' | 'medium';
   error?: boolean;
+  helperText?: string;
 }) {
   let id = React.useId();
   if (idProp) {
@@ -38,6 +46,7 @@ export default function NumberField({
       render={(props, state) => (
         <FormControl
           size={size}
+          fullWidth
           ref={props.ref}
           disabled={state.disabled}
           required={state.required}
@@ -54,6 +63,7 @@ export default function NumberField({
         id={id}
         render={(props, state) => (
           <OutlinedInput
+            fullWidth
             label={label}
             inputRef={props.ref}
             value={state.inputValue}
@@ -106,7 +116,7 @@ export default function NumberField({
         )}
       />
       <FormHelperText sx={{ ml: 0, '&:empty': { mt: 0 } }}>
-        Enter value between 10 and 40
+        {helperText}
       </FormHelperText>
     </BaseNumberField.Root>
   );
