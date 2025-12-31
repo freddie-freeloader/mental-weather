@@ -35,7 +35,7 @@ export default function MorningCheckIn() {
       <Typography variant="h4" gutterBottom>
         Morning Check-In
       </Typography>
-      
+
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -48,7 +48,7 @@ export default function MorningCheckIn() {
             Sleep Quality
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="sleepQuality"
             children={(field) => (
@@ -125,7 +125,7 @@ export default function MorningCheckIn() {
             Sleep Schedule
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="sleepHours"
             children={(field) => (
@@ -172,7 +172,7 @@ export default function MorningCheckIn() {
             Medication & Physical
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="promethazineTaken"
             children={(field) => (
@@ -204,7 +204,7 @@ export default function MorningCheckIn() {
             Morning Mood & Energy
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="morningMood"
             children={(field) => (
@@ -240,7 +240,7 @@ export default function MorningCheckIn() {
             Notes
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="otherSleepNotes"
             children={(field) => (

@@ -17,7 +17,7 @@ export default function EveningCheckIn() {
       stress: 0,
       activityLevel: 0,
       feelingTiredInEvening: 0,
-      
+
       // Cognitive & Focus
       fatigueDuringDay: 0,
       muchOnSocialMedia: 0,
@@ -25,34 +25,34 @@ export default function EveningCheckIn() {
       distractible: 0,
       difficultyConcentrating: 0,
       flightOfIdeas: 0,
-      
+
       // Hobby Project
       programmedHobbyProject: 0,
       hadFunWithHobbyProject: 0,
-      
+
       // Work
       dailyWorkWasFun: 0,
       dailyWorkWasInteresting: 0,
       overwhelmedByWork: 0,
       hoursWorked: 0,
-      
+
       // Social
       hoursWithOtherPeople: 0,
       socialIntensity: 0,
       qualityOfSocialTime: 0,
       socialInsecurity: 0,
-      
+
       // Mental Health
       fearOfGettingManic: 0,
       overallAnxiety: 0,
       selfCare: 0,
-      
+
       // Physical Health
       hadMigraine: "",
       hadDejaVu: "",
       beingSick: 0,
       drankCoffee: 0,
-      
+
       // Notes
       notes: ""
     },
@@ -67,7 +67,7 @@ export default function EveningCheckIn() {
       <Typography variant="h4" gutterBottom>
         Evening Check-In
       </Typography>
-      
+
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -80,7 +80,7 @@ export default function EveningCheckIn() {
             Mood & Energy
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="averageMood"
             children={(field) => (
@@ -172,7 +172,7 @@ export default function EveningCheckIn() {
             Cognitive & Focus
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="fatigueDuringDay"
             children={(field) => (
@@ -264,7 +264,7 @@ export default function EveningCheckIn() {
             Hobby Project
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="programmedHobbyProject"
             children={(field) => (
@@ -298,7 +298,7 @@ export default function EveningCheckIn() {
             Work
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="dailyWorkWasFun"
             children={(field) => (
@@ -360,7 +360,7 @@ export default function EveningCheckIn() {
             Social
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="hoursWithOtherPeople"
             children={(field) => (
@@ -422,7 +422,7 @@ export default function EveningCheckIn() {
             Mental Health
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="fearOfGettingManic"
             children={(field) => (
@@ -472,7 +472,7 @@ export default function EveningCheckIn() {
             Physical Health
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="hadMigraine"
             children={(field) => (
@@ -534,7 +534,7 @@ export default function EveningCheckIn() {
             Notes
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          
+
           <form.Field
             name="notes"
             children={(field) => (

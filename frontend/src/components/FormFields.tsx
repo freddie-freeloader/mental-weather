@@ -105,25 +105,36 @@ export function SliderFieldComponent({
   const isTouched = field.state.meta.isTouched
 
   return (
-    <Box sx={{ width: "100%", mt: 3, mb: 2 }}>
+    <Box sx={{
+      width: "100%",
+      mt: 3,
+      mb: 2,
+      py: 2  // Add vertical padding to increase scroll area
+    }}>
       <Typography gutterBottom>
         {label} {required && "*"}: {field.state.value}
       </Typography>
-      <Slider
-        value={field.state.value}
-        onChange={(_, value) => {
-          field.handleChange(value as number)
-        }}
-        onBlur={field.handleBlur}
-        min={min}
-        max={max}
-        step={step}
-        marks={marks}
-        valueLabelDisplay="auto"
-        sx={{
-          color: hasErrors && isTouched ? "error.main" : "primary.main",
-        }}
-      />
+      {/* Wrapper to control touch behavior */}
+      <Box sx={{
+        px: 2,  // Add horizontal padding to reduce accidental touches
+        touchAction: "pan-y"  // Prioritize vertical scrolling over slider interaction
+      }}>
+        <Slider
+          value={field.state.value}
+          onChange={(_, value) => {
+            field.handleChange(value as number)
+          }}
+          onBlur={field.handleBlur}
+          min={min}
+          max={max}
+          step={step}
+          marks={marks}
+          valueLabelDisplay="auto"
+          sx={{
+            color: hasErrors && isTouched ? "error.main" : "primary.main",
+          }}
+        />
+      </Box>
       {hasErrors && isTouched && (
         <Typography color="error" variant="caption">
           {field.state.meta.errors.join(", ")}

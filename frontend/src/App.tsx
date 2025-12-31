@@ -45,10 +45,10 @@ export default function App() {
         <Typography variant="h3" sx={{ py: 3, textAlign: 'center' }}>
           Ophelia's Mental Weather Log
         </Typography>
-        
+
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs 
-            value={currentTab} 
+          <Tabs
+            value={currentTab}
             onChange={handleTabChange}
             centered
             aria-label="check-in forms"
@@ -62,11 +62,11 @@ export default function App() {
         <TabPanel value={currentTab} index={0}>
           <MorningCheckIn />
         </TabPanel>
-        
+
         <TabPanel value={currentTab} index={1}>
           <EveningCheckIn />
         </TabPanel>
-        
+
         <TabPanel value={currentTab} index={2}>
           <ExampleForm />
         </TabPanel>
