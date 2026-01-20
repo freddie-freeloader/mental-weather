@@ -48,8 +48,8 @@ export default function EveningCheckIn() {
       selfCare: 0,
 
       // Physical Health
-      hadMigraine: "",
-      hadDejaVu: "",
+      hadMigraine: 0,
+      hadDejaVu: 0,
       beingSick: 0,
       drankCoffee: 0,
 
@@ -57,8 +57,26 @@ export default function EveningCheckIn() {
       notes: ""
     },
     onSubmit: async ({ value }) => {
-      console.log("Evening Check-In Data:", value)
-      alert("Evening check-in submitted! Check console for data.")
+      try {
+        const response = await fetch("http://localhost:8080/evening-check-in", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(value),
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to submit evening check-in")
+        }
+
+        const data = await response.json()
+        console.log("Submission success:", data)
+        alert("Evening check-in submitted successfully!")
+      } catch (error) {
+        console.error("Submission error:", error)
+        alert("Failed to submit evening check-in. Is the backend running?")
+      }
     }
   })
 

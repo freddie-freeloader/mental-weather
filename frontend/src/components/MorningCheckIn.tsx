@@ -25,8 +25,26 @@ export default function MorningCheckIn() {
       otherSleepNotes: ""
     },
     onSubmit: async ({ value }) => {
-      console.log("Morning Check-In Data:", value)
-      alert("Morning check-in submitted! Check console for data.")
+      try {
+        const response = await fetch("http://localhost:8080/morning-check-in", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(value),
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to submit morning check-in")
+        }
+
+        const data = await response.json()
+        console.log("Submission success:", data)
+        alert("Morning check-in submitted successfully!")
+      } catch (error) {
+        console.error("Submission error:", error)
+        alert("Failed to submit morning check-in. Is the backend running?")
+      }
     }
   })
 
