@@ -2,9 +2,19 @@ import { TextField, Slider, Button, Box, Typography, CircularProgress } from "@m
 import type { FieldApi } from "@tanstack/react-form"
 import MuiNumberField from "./MuiNumberField"
 
+/**
+ * Helper type to handle the complex FieldApi generic which requires 23 arguments in recent versions.
+ * Using any here as a placeholder for the numerous internal TanStack Form types.
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type FieldApiWithValue<T> = FieldApi<
+  any, any, T, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any, any
+>
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 // Type-safe props for TextField component
 interface TextFieldComponentProps {
-  field: FieldApi<any, any, any, any, string>
+  field: FieldApiWithValue<string>
   label: string
   placeholder?: string
   required?: boolean
@@ -37,7 +47,7 @@ export function TextFieldComponent({
 
 // Type-safe props for NumberField component
 interface NumberFieldComponentProps {
-  field: FieldApi<any, any, any, any, number>
+  field: FieldApiWithValue<number>
   label: string
   min?: number
   max?: number
@@ -79,7 +89,7 @@ export function NumberFieldComponent({
 
 // Type-safe props for SliderField component
 interface SliderFieldComponentProps {
-  field: FieldApi<any, any, any, any, number>
+  field: FieldApiWithValue<number>
   label: string
   min: number
   max: number
@@ -142,7 +152,7 @@ export function SliderFieldComponent({
 
 // Type-safe props for TextArea component
 interface TextAreaFieldComponentProps {
-  field: FieldApi<any, any, any, any, string>
+  field: FieldApiWithValue<string>
   label: string
   rows?: number
   placeholder?: string

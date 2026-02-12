@@ -8,8 +8,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+)
+
+const (
+	VERSION  = "1.0.0"
+	DATA_DIR = "/data"
 )
 
 // MorningCheckIn represents the data from the morning check-in form
@@ -63,85 +68,109 @@ type EveningCheckIn struct {
 	Notes                      string  `json:"notes"`
 }
 
+type VersionedData[T any] struct {
+	Version string `json:"version"`
+	Data    T      `json:"data"`
+}
+
 func main() {
-	// Create a Gin router with default middleware (logger and recovery)
-	r := gin.Default()
+	r := chi.NewRouter()
 
-	// Setup CORS
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
+	// Middleware
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(corsMiddleware)
 
-	// Data directory
-	dataDir := "./data"
-	if err := os.MkdirAll(dataDir, 0755); err != nil {
+	if err := os.MkdirAll(DATA_DIR, 0755); err != nil {
 		fmt.Printf("Failed to create data directory: %v\n", err)
 	}
 
-	// Define a simple GET endpoint
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
+	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
 	})
 
 	// Handle Morning Check-In
-	r.POST("/morning-check-in", func(c *gin.Context) {
-		var data MorningCheckIn
-		if err := c.ShouldBindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		// Save to file
-		timestamp := time.Now().Format("2006-01-02_15-04-05")
-		filename := filepath.Join(dataDir, fmt.Sprintf("morning_%s.json", timestamp))
-
-		jsonData, err := json.MarshalIndent(data, "", "  ")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal data"})
-			return
-		}
-
-		if err := os.WriteFile(filename, jsonData, 0644); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save data"})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Morning check-in saved"})
-	})
+	r.Post("/morning-check-in", handleMorningCheckIn)
 
 	// Handle Evening Check-In
-	r.POST("/evening-check-in", func(c *gin.Context) {
-		var data EveningCheckIn
-		if err := c.ShouldBindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	r.Post("/evening-check-in", handleEveningCheckIn)
+
+	fmt.Println("Server starting on :8080")
+	http.ListenAndServe(":8080", r)
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Max-Age", "43200") // 12 hours
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		// Save to file
-		timestamp := time.Now().Format("2006-01-02_15-04-05")
-		filename := filepath.Join(dataDir, fmt.Sprintf("evening_%s.json", timestamp))
-
-		jsonData, err := json.MarshalIndent(data, "", "  ")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal data"})
-			return
-		}
-
-		if err := os.WriteFile(filename, jsonData, 0644); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save data"})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Evening check-in saved"})
+		next.ServeHTTP(w, r)
 	})
+}
 
-	// Start server on port 8080 (default)
-	r.Run()
+func handleMorningCheckIn(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Morning Check-In received")
+
+	var data MorningCheckIn
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, `{"error": "`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+
+	versionedData := VersionedData[MorningCheckIn]{
+		Version: VERSION,
+		Data:    data,
+	}
+
+	timestamp := time.Now().Format("2006-01-02")
+	filename := filepath.Join(DATA_DIR, fmt.Sprintf("morning_%s.json", timestamp))
+
+	saveData(w, filename, versionedData, "Morning check-in saved")
+}
+
+func handleEveningCheckIn(w http.ResponseWriter, r *http.Request) {
+	var data EveningCheckIn
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, `{"error": "`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+
+	versionedData := VersionedData[EveningCheckIn]{
+		Version: VERSION,
+		Data:    data,
+	}
+
+	timestamp := time.Now().Format("2006-01-02")
+	filename := filepath.Join(DATA_DIR, fmt.Sprintf("evening_%s.json", timestamp))
+
+	saveData(w, filename, versionedData, "Evening check-in saved")
+}
+
+func saveData[T any](w http.ResponseWriter, filename string, data VersionedData[T], successMsg string) {
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		http.Error(w, `{"error": "Failed to marshal data"}`, http.StatusInternalServerError)
+		return
+	}
+
+	if err := os.WriteFile(filename, jsonData, 0644); err != nil {
+		http.Error(w, `{"error": "Failed to save data"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":  "success",
+		"message": successMsg,
+	})
 }

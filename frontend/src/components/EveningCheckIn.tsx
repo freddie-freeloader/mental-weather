@@ -6,8 +6,13 @@ import {
   TextAreaFieldComponent,
   SubmitButtonComponent
 } from "./FormFields"
+import { useState } from "react"
+import { Snackbar } from "@mui/material"
 
 export default function EveningCheckIn() {
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState("")
+
   const form = useForm({
     defaultValues: {
       // Mood & Energy
@@ -58,7 +63,7 @@ export default function EveningCheckIn() {
     },
     onSubmit: async ({ value }) => {
       try {
-        const response = await fetch("http://localhost:8080/evening-check-in", {
+        const response = await fetch("/api/evening-check-in", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -66,21 +71,31 @@ export default function EveningCheckIn() {
           body: JSON.stringify(value),
         })
 
-        if (!response.ok) {
-          throw new Error("Failed to submit evening check-in")
+        console.log("Response:", response)
+        const data = await response.json()
+        console.log("Data:", data)
+
+        if (data.status === "success") {
+          setSnackbarOpen(true)
+          setSnackbarMessage(data.message)
+        } else if (data.status === "error") {
+          setSnackbarOpen(true)
+          setSnackbarMessage(data.message)
+        } else {
+          setSnackbarOpen(true)
+          setSnackbarMessage("Unknown response")
         }
 
-        const data = await response.json()
-        console.log("Submission success:", data)
-        alert("Evening check-in submitted successfully!")
       } catch (error) {
         console.error("Submission error:", error)
-        alert("Failed to submit evening check-in. Is the backend running?")
+        setSnackbarOpen(true)
+        setSnackbarMessage("Failed to submit evening check-in. Is the backend running?")
       }
     }
   })
 
   return (
+    <>
     <Box sx={{ py: 2 }}>
       <Typography variant="h4" gutterBottom>
         Evening Check-In
@@ -582,6 +597,13 @@ export default function EveningCheckIn() {
         />
       </form>
     </Box>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMessage}
+      />
+    </>
   )
 }
 

@@ -111,7 +111,7 @@ export default function ExampleForm() {
                   label="Sleep Hours"
                   min={0}
                   max={24}
-                  step="any"
+                  step={0.5}
                 />
               )}
             </form.Field>
