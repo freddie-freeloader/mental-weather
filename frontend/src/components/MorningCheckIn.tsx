@@ -6,8 +6,13 @@ import {
   TextAreaFieldComponent,
   SubmitButtonComponent
 } from "./FormFields"
+import { Snackbar, Alert } from "@mui/material"
+import { useState } from "react"
 
 export default function MorningCheckIn() {
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState("")
+
   const form = useForm({
     defaultValues: {
       sleepQuality: 0,
@@ -26,7 +31,7 @@ export default function MorningCheckIn() {
     },
     onSubmit: async ({ value }) => {
       try {
-        const response = await fetch("http://localhost:8080/morning-check-in", {
+        const response = await fetch("/api/morning-check-in", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -34,21 +39,33 @@ export default function MorningCheckIn() {
           body: JSON.stringify(value),
         })
 
-        if (!response.ok) {
-          throw new Error("Failed to submit morning check-in")
-        }
+        console.log("Response:", response)
 
         const data = await response.json()
-        console.log("Submission success:", data)
-        alert("Morning check-in submitted successfully!")
+
+        console.log("Data:", data)
+
+        if (data.status === "success") {
+          setSnackbarOpen(true)
+          setSnackbarMessage(data.message)
+        } else if (data.status === "error") {
+          setSnackbarOpen(true)
+          setSnackbarMessage(data.message)
+        } else {
+          setSnackbarOpen(true)
+          setSnackbarMessage("Unknown response")
+        }
+
       } catch (error) {
         console.error("Submission error:", error)
-        alert("Failed to submit morning check-in. Is the backend running?")
+        setSnackbarOpen(true)
+        setSnackbarMessage("Failed to submit morning check-in. Is the backend running?")
       }
     }
   })
 
   return (
+    <>
     <Box sx={{ py: 2 }}>
       <Typography variant="h4" gutterBottom>
         Morning Check-In
@@ -288,6 +305,12 @@ export default function MorningCheckIn() {
         />
       </form>
     </Box>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMessage}
+      />
+    </>
   )
 }
-
