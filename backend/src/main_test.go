@@ -86,3 +86,36 @@ func TestMorningCheckIn(t *testing.T) {
              t.Errorf("handler returned 400 for valid json")
     }
 }
+
+func TestGetMorningCheckIn(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/morning-check-in", handleGetMorningCheckIn)
+
+	// Case 1: File likely does not exist (unless ran on a real prod system with data)
+	// We expect 204 No Content
+	req, _ := http.NewRequest("GET", "/morning-check-in", nil)
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+
+	// If file happens to exist, it returns 200, if not 204. Both are "valid" behaviors of the handler
+	// but for a clean test we'd want 204.
+	if status := rr.Code; status != http.StatusNoContent && status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v", status)
+	}
+}
+
+func TestGetEveningCheckIn(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/evening-check-in", handleGetEveningCheckIn)
+
+	// Case 1: File likely does not exist
+	req, _ := http.NewRequest("GET", "/evening-check-in", nil)
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusNoContent && status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v", status)
+	}
+}

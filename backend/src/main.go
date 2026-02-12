@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -91,9 +92,11 @@ func main() {
 	})
 
 	// Handle Morning Check-In
+	r.Get("/morning-check-in", handleGetMorningCheckIn)
 	r.Post("/morning-check-in", handleMorningCheckIn)
 
 	// Handle Evening Check-In
+	r.Get("/evening-check-in", handleGetEveningCheckIn)
 	r.Post("/evening-check-in", handleEveningCheckIn)
 
 	fmt.Println("Server starting on :8080")
@@ -173,4 +176,37 @@ func saveData[T any](w http.ResponseWriter, filename string, data VersionedData[
 		"status":  "success",
 		"message": successMsg,
 	})
+}
+
+func handleGetMorningCheckIn(w http.ResponseWriter, r *http.Request) {
+	timestamp := time.Now().Format("2006-01-02")
+	filename := filepath.Join(DATA_DIR, fmt.Sprintf("morning_%s.json", timestamp))
+
+	serveFileIfExists(w, filename)
+}
+
+func handleGetEveningCheckIn(w http.ResponseWriter, r *http.Request) {
+	timestamp := time.Now().Format("2006-01-02")
+	filename := filepath.Join(DATA_DIR, fmt.Sprintf("evening_%s.json", timestamp))
+
+	serveFileIfExists(w, filename)
+}
+
+func serveFileIfExists(w http.ResponseWriter, filename string) {
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	} else if err != nil {
+		http.Error(w, `{"error": "Failed to check file existence"}`, http.StatusInternalServerError)
+		return
+	}
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		http.Error(w, `{"error": "Failed to read file"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
 }

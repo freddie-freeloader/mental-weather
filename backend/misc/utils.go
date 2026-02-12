@@ -104,3 +104,5 @@ func LoadMorningCheckIn() (*MorningCheckIn, error) {
 	// Step 5: Return the pointer.
 	return &checkIn, nil
 }
+
+
