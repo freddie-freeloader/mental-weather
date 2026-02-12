@@ -6,15 +6,14 @@ import {
   TextAreaFieldComponent,
   SubmitButtonComponent
 } from "./FormFields"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Snackbar } from "@mui/material"
 
 export default function EveningCheckIn() {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState("")
-
-  const form = useForm({
-    defaultValues: {
+  const [isLoading, setIsLoading] = useState(true)
+  const [initialValues, setInitialValues] = useState({
       // Mood & Energy
       averageMood: 0,
       averageEnergy: 0,
@@ -60,7 +59,41 @@ export default function EveningCheckIn() {
 
       // Notes
       notes: ""
-    },
+  })
+
+  useEffect(() => {
+    const checkExistingReport = async () => {
+      try {
+        const response = await fetch("/api/evening-check-in")
+        if (response.status === 200) {
+          const data = await response.json()
+          if (data && data.data) {
+            setInitialValues(data.data)
+            setSnackbarMessage("Loaded existing report for today")
+            setSnackbarOpen(true)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check existing report", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    checkExistingReport()
+  }, [])
+
+  if (isLoading) {
+    return <Box sx={{ p: 4, textAlign: 'center' }}><Typography>Loading...</Typography></Box>
+  }
+
+  return (
+    <EveningCheckInForm initialValues={initialValues} snackbarOpen={snackbarOpen} snackbarMessage={snackbarMessage} setSnackbarOpen={setSnackbarOpen} setSnackbarMessage={setSnackbarMessage} />
+  )
+}
+
+function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: { initialValues: any, snackbarOpen: boolean, snackbarMessage: string, setSnackbarOpen: any, setSnackbarMessage: any }) {
+  const form = useForm({
+    defaultValues: initialValues,
     onSubmit: async ({ value }) => {
       try {
         const response = await fetch("/api/evening-check-in", {
