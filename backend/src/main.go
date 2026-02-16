@@ -82,7 +82,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(corsMiddleware)
 
-	if err := os.MkdirAll(DATA_DIR, 0755); err != nil {
+	if err := os.MkdirAll(DATA_DIR, 0o755); err != nil {
 		fmt.Printf("Failed to create data directory: %v\n", err)
 	}
 
@@ -166,7 +166,7 @@ func saveData[T any](w http.ResponseWriter, filename string, data VersionedData[
 		return
 	}
 
-	if err := os.WriteFile(filename, jsonData, 0644); err != nil {
+	if err := os.WriteFile(filename, jsonData, 0o644); err != nil {
 		http.Error(w, `{"error": "Failed to save data"}`, http.StatusInternalServerError)
 		return
 	}
@@ -193,6 +193,7 @@ func handleGetEveningCheckIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func serveFileIfExists(w http.ResponseWriter, filename string) {
+	// TODO: Fix -- this creates a TOCTOU bug
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 		w.WriteHeader(http.StatusNoContent)
 		return
