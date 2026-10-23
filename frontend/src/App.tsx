@@ -5,6 +5,7 @@ import { Container, Typography, Tabs, Tab, Box } from '@mui/material';
 import MorningCheckIn from './components/MorningCheckIn';
 import EveningCheckIn from './components/EveningCheckIn';
 import ExampleForm from './components/ExampleForm';
+import AnimalDisplay from './components/AnimalDisplay';
 
 const darkTheme = createTheme({
   palette: {
@@ -45,6 +46,8 @@ export default function App() {
         <Typography variant="h3" sx={{ py: 3, textAlign: 'center' }}>
           Ophelia's Mental Weather Log
         </Typography>
+
+        <AnimalDisplay />
 
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs
