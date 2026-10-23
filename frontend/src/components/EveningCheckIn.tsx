@@ -7,12 +7,35 @@ import {
   SubmitButtonComponent
 } from "./FormFields"
 import { useState, useEffect } from "react"
-import { Snackbar } from "@mui/material"
+import { Snackbar, Chip } from "@mui/material"
+
+interface AnimalArchetype {
+	name: string
+	emoji: string
+	description: string
+	message: string
+	energy: number
+	mood: number
+	cognitive: number
+	social: number
+	anxiety: number
+}
+
+interface AnimalAnalysisResult {
+	animal: AnimalArchetype
+	energyScore: number
+	moodScore: number
+	cognitiveScore: number
+	socialScore: number
+	anxietyScore: number
+	timestamp: string
+}
 
 export default function EveningCheckIn() {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [animalResult, setAnimalResult] = useState<AnimalAnalysisResult | null>(null)
   const [initialValues, setInitialValues] = useState({
       // Mood & Energy
       averageMood: 0,
@@ -111,6 +134,16 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         if (data.status === "success") {
           setSnackbarOpen(true)
           setSnackbarMessage(data.message)
+          // After successful submission, fetch the animal analysis
+          try {
+            const analysisResponse = await fetch("/api/animal-analysis")
+            if (analysisResponse.status === 200) {
+              const analysisData = await analysisResponse.json()
+              setAnimalResult(analysisData)
+            }
+          } catch (error) {
+            console.error("Failed to fetch animal analysis:", error)
+          }
         } else if (data.status === "error") {
           setSnackbarOpen(true)
           setSnackbarMessage(data.message)
@@ -630,6 +663,28 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         />
       </form>
     </Box>
+
+    {animalResult && (
+      <Box sx={{ mt: 3 }}>
+        <Paper elevation={2} sx={{ p: 2 }}>
+          <Box sx={{ textAlign: 'center', mb: 2 }}>
+            <Typography variant="h5" gutterBottom>
+              Your Animal Archetype Today
+            </Typography>
+            <Typography variant="h3" component="div">
+              {animalResult.animal.emoji}
+            </Typography>
+            <Typography variant="h6">
+              {animalResult.animal.name}
+            </Typography>
+          </Box>
+          <Typography variant="body2" paragraph>
+            {animalResult.animal.message}
+          </Typography>
+        </Paper>
+      </Box>
+    )}
+
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
