@@ -7,6 +7,8 @@ import {
   SubmitButtonComponent
 } from "./FormFields"
 import { useState, useEffect } from "react"
+import { loadToday, saveToday } from "../storage"
+import { analyzeEvening } from "./AnimalDisplay"
 import { Snackbar, Chip } from "@mui/material"
 
 interface AnimalArchetype {
@@ -35,7 +37,6 @@ export default function EveningCheckIn() {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-  const [animalResult, setAnimalResult] = useState<AnimalAnalysisResult | null>(null)
   const [initialValues, setInitialValues] = useState({
       // Mood & Energy
       averageMood: 0,
@@ -85,24 +86,13 @@ export default function EveningCheckIn() {
   })
 
   useEffect(() => {
-    const checkExistingReport = async () => {
-      try {
-        const response = await fetch("/api/evening-check-in")
-        if (response.status === 200) {
-          const data = await response.json()
-          if (data && data.data) {
-            setInitialValues(data.data)
-            setSnackbarMessage("Loaded existing report for today")
-            setSnackbarOpen(true)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to check existing report", error)
-      } finally {
-        setIsLoading(false)
-      }
+    const existing = loadToday<typeof initialValues>("evening")
+    if (existing) {
+      setInitialValues(existing)
+      setSnackbarMessage("Loaded existing report for today")
+      setSnackbarOpen(true)
     }
-    checkExistingReport()
+    setIsLoading(false)
   }, [])
 
   if (isLoading) {
@@ -115,48 +105,19 @@ export default function EveningCheckIn() {
 }
 
 function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: { initialValues: any, snackbarOpen: boolean, snackbarMessage: string, setSnackbarOpen: any, setSnackbarMessage: any }) {
+  const [animalResult, setAnimalResult] = useState<AnimalAnalysisResult | null>(null)
   const form = useForm({
     defaultValues: initialValues,
     onSubmit: async ({ value }) => {
       try {
-        const response = await fetch("/api/evening-check-in", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(value),
-        })
-
-        console.log("Response:", response)
-        const data = await response.json()
-        console.log("Data:", data)
-
-        if (data.status === "success") {
-          setSnackbarOpen(true)
-          setSnackbarMessage(data.message)
-          // After successful submission, fetch the animal analysis
-          try {
-            const analysisResponse = await fetch("/api/animal-analysis")
-            if (analysisResponse.status === 200) {
-              const analysisData = await analysisResponse.json()
-              setAnimalResult(analysisData)
-            }
-          } catch (error) {
-            console.error("Failed to fetch animal analysis:", error)
-          }
-        } else if (data.status === "error") {
-          setSnackbarOpen(true)
-          setSnackbarMessage(data.message)
-        } else {
-          setSnackbarOpen(true)
-          setSnackbarMessage("Unknown response")
-        }
-
+        saveToday("evening", value)
+        setSnackbarMessage("Evening check-in saved")
+        setAnimalResult(analyzeEvening(value))
       } catch (error) {
         console.error("Submission error:", error)
-        setSnackbarOpen(true)
-        setSnackbarMessage("Failed to submit evening check-in. Is the backend running?")
+        setSnackbarMessage("Failed to save evening check-in")
       }
+      setSnackbarOpen(true)
     }
   })
 

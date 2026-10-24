@@ -10,11 +10,10 @@ I want to build a mood tracker that is only used by me -- it's called "Ophelia's
 
 ## Technologies
 
-- everything runs in a container that serves the web-app & runs the backend
-- build frontend with typescript + vite + react + @mui/material + @tanstack/react-form
-- build backend with golang
-	- backend is very simple -- just needs to serialize & deserialize + persist data
-- Some very simple way to serve the web-app (maybe just vite serve or other simple server (caddy?))
+- local-first single-page app, no backend
+- data persisted in browser `localStorage`
+- build with typescript + vite + react + @mui/material + @tanstack/react-form
+- static build can be served by any static file server
 
 ## Functionality
 

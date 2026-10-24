@@ -8,6 +8,7 @@ import {
 } from "./FormFields"
 import { Snackbar } from "@mui/material"
 import { useEffect, useState } from "react"
+import { loadToday, saveToday } from "../storage"
 
 export default function MorningCheckIn() {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
@@ -30,24 +31,13 @@ export default function MorningCheckIn() {
   })
 
   useEffect(() => {
-    const checkExistingReport = async () => {
-      try {
-        const response = await fetch("/api/morning-check-in")
-        if (response.status === 200) {
-          const data = await response.json()
-          if (data && data.data) {
-            setInitialValues(data.data)
-            setSnackbarMessage("Loaded existing report for today")
-            setSnackbarOpen(true)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to check existing report", error)
-      } finally {
-        setIsLoading(false)
-      }
+    const existing = loadToday<typeof initialValues>("morning")
+    if (existing) {
+      setInitialValues(existing)
+      setSnackbarMessage("Loaded existing report for today")
+      setSnackbarOpen(true)
     }
-    checkExistingReport()
+    setIsLoading(false)
   }, [])
 
   if (isLoading) {
@@ -64,36 +54,13 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
     defaultValues: initialValues,
     onSubmit: async ({ value }) => {
       try {
-        const response = await fetch("/api/morning-check-in", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(value),
-        })
-
-        console.log("Response:", response)
-
-        const data = await response.json()
-
-        console.log("Data:", data)
-
-        if (data.status === "success") {
-          setSnackbarOpen(true)
-          setSnackbarMessage(data.message)
-        } else if (data.status === "error") {
-          setSnackbarOpen(true)
-          setSnackbarMessage(data.message)
-        } else {
-          setSnackbarOpen(true)
-          setSnackbarMessage("Unknown response")
-        }
-
+        saveToday("morning", value)
+        setSnackbarMessage("Morning check-in saved")
       } catch (error) {
         console.error("Submission error:", error)
-        setSnackbarOpen(true)
-        setSnackbarMessage("Failed to submit morning check-in. Is the backend running?")
+        setSnackbarMessage("Failed to save morning check-in")
       }
+      setSnackbarOpen(true)
     }
   })
 
