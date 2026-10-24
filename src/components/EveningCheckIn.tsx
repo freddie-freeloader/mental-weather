@@ -6,38 +6,13 @@ import {
   TextAreaFieldComponent,
   SubmitButtonComponent
 } from "./FormFields"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { loadToday, saveToday } from "../storage"
-import { analyzeEvening } from "./AnimalDisplay"
+import { analyzeEvening, type AnimalAnalysisResult } from "../animals"
 import { Snackbar } from "@mui/material"
 
-interface AnimalArchetype {
-	name: string
-	emoji: string
-	description: string
-	message: string
-	energy: number
-	mood: number
-	cognitive: number
-	social: number
-	anxiety: number
-}
 
-interface AnimalAnalysisResult {
-	animal: AnimalArchetype
-	energyScore: number
-	moodScore: number
-	cognitiveScore: number
-	socialScore: number
-	anxietyScore: number
-	timestamp: string
-}
-
-export default function EveningCheckIn({ onSaved }: { onSaved?: () => void }) {
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [initialValues, setInitialValues] = useState({
+const DEFAULTS = {
       // Mood & Energy
       averageMood: 0,
       averageEnergy: 0,
@@ -83,28 +58,30 @@ export default function EveningCheckIn({ onSaved }: { onSaved?: () => void }) {
 
       // Notes
       notes: ""
-  })
-
-  useEffect(() => {
-    const existing = loadToday<typeof initialValues>("evening")
-    if (existing) {
-      setInitialValues(existing)
-      setSnackbarMessage("Loaded existing report for today")
-      setSnackbarOpen(true)
-    }
-    setIsLoading(false)
-  }, [])
-
-  if (isLoading) {
-    return <Box sx={{ p: 4, textAlign: 'center' }}><Typography>Loading...</Typography></Box>
   }
+type Values = typeof DEFAULTS
+
+interface FormProps {
+  onSaved?: () => void
+  initialValues: Values
+  snackbarOpen: boolean
+  snackbarMessage: string
+  setSnackbarOpen: (open: boolean) => void
+  setSnackbarMessage: (message: string) => void
+}
+
+export default function EveningCheckIn({ onSaved }: { onSaved?: () => void }) {
+  const [existing] = useState(() => loadToday<Values>("evening"))
+  const [snackbarOpen, setSnackbarOpen] = useState(existing !== null)
+  const [snackbarMessage, setSnackbarMessage] = useState(existing ? "Loaded existing report for today" : "")
+  const initialValues = existing ?? DEFAULTS
 
   return (
     <EveningCheckInForm onSaved={onSaved} initialValues={initialValues} snackbarOpen={snackbarOpen} snackbarMessage={snackbarMessage} setSnackbarOpen={setSnackbarOpen} setSnackbarMessage={setSnackbarMessage} />
   )
 }
 
-function EveningCheckInForm({ onSaved, initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: { onSaved?: () => void, initialValues: any, snackbarOpen: boolean, snackbarMessage: string, setSnackbarOpen: any, setSnackbarMessage: any }) {
+function EveningCheckInForm({ onSaved, initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: FormProps) {
   const [animalResult, setAnimalResult] = useState<AnimalAnalysisResult | null>(null)
   const form = useForm({
     defaultValues: initialValues,

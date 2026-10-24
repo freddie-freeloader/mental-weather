@@ -7,14 +7,10 @@ import {
   SubmitButtonComponent
 } from "./FormFields"
 import { Snackbar } from "@mui/material"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { loadToday, saveToday } from "../storage"
 
-export default function MorningCheckIn() {
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [initialValues, setInitialValues] = useState({
+const DEFAULTS = {
       sleepQuality: 0,
       sleepHours: 0,
       bedTime: 0,
@@ -28,28 +24,29 @@ export default function MorningCheckIn() {
       morningEnergy: 0,
       weight: 0,
       otherSleepNotes: ""
-  })
-
-  useEffect(() => {
-    const existing = loadToday<typeof initialValues>("morning")
-    if (existing) {
-      setInitialValues(existing)
-      setSnackbarMessage("Loaded existing report for today")
-      setSnackbarOpen(true)
-    }
-    setIsLoading(false)
-  }, [])
-
-  if (isLoading) {
-    return <Box sx={{ p: 4, textAlign: 'center' }}><Typography>Loading...</Typography></Box>
   }
+type Values = typeof DEFAULTS
+
+interface FormProps {
+  initialValues: Values
+  snackbarOpen: boolean
+  snackbarMessage: string
+  setSnackbarOpen: (open: boolean) => void
+  setSnackbarMessage: (message: string) => void
+}
+
+export default function MorningCheckIn() {
+  const [existing] = useState(() => loadToday<Values>("morning"))
+  const [snackbarOpen, setSnackbarOpen] = useState(existing !== null)
+  const [snackbarMessage, setSnackbarMessage] = useState(existing ? "Loaded existing report for today" : "")
+  const initialValues = existing ?? DEFAULTS
 
   return (
     <MorningCheckInForm initialValues={initialValues} snackbarOpen={snackbarOpen} snackbarMessage={snackbarMessage} setSnackbarOpen={setSnackbarOpen} setSnackbarMessage={setSnackbarMessage} />
   )
 }
 
-function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: { initialValues: any, snackbarOpen: boolean, snackbarMessage: string, setSnackbarOpen: any, setSnackbarMessage: any }) {
+function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: FormProps) {
   const form = useForm({
     defaultValues: initialValues,
     onSubmit: async ({ value }) => {

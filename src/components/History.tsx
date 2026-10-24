@@ -1,6 +1,6 @@
 import { Box, Chip, Paper, Typography } from "@mui/material"
 import { listDays } from "../storage"
-import { analyzeEvening } from "./AnimalDisplay"
+import { analyzeEvening } from "../animals"
 
 function formatDate(date: string): string {
   const [y, m, d] = date.split("-").map(Number)
