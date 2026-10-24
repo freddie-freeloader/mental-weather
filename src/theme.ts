@@ -1,5 +1,4 @@
 import { createTheme } from '@mui/material/styles';
-import { ThemeOptions } from '@mui/material/styles';
 
 // Kawaii pastel color palette
 const pastelPalette = {

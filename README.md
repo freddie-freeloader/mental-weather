@@ -23,3 +23,9 @@ npm run preview  # serve the build
 ```
 
 `dist/` is static and can be hosted anywhere.
+
+## GitHub Pages
+
+- Workflow: `.github/workflows/deploy.yml` builds and deploys `dist/` on push to `main`.
+- Enable once: repo Settings → Pages → Source: **GitHub Actions**.
+- `vite.config.ts` uses `base: './'`, so it works under any repo path.

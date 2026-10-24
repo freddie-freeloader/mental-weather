@@ -9,7 +9,7 @@ import {
 import { useState, useEffect } from "react"
 import { loadToday, saveToday } from "../storage"
 import { analyzeEvening } from "./AnimalDisplay"
-import { Snackbar, Chip } from "@mui/material"
+import { Snackbar } from "@mui/material"
 
 interface AnimalArchetype {
 	name: string
@@ -33,7 +33,7 @@ interface AnimalAnalysisResult {
 	timestamp: string
 }
 
-export default function EveningCheckIn() {
+export default function EveningCheckIn({ onSaved }: { onSaved?: () => void }) {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -100,11 +100,11 @@ export default function EveningCheckIn() {
   }
 
   return (
-    <EveningCheckInForm initialValues={initialValues} snackbarOpen={snackbarOpen} snackbarMessage={snackbarMessage} setSnackbarOpen={setSnackbarOpen} setSnackbarMessage={setSnackbarMessage} />
+    <EveningCheckInForm onSaved={onSaved} initialValues={initialValues} snackbarOpen={snackbarOpen} snackbarMessage={snackbarMessage} setSnackbarOpen={setSnackbarOpen} setSnackbarMessage={setSnackbarMessage} />
   )
 }
 
-function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: { initialValues: any, snackbarOpen: boolean, snackbarMessage: string, setSnackbarOpen: any, setSnackbarMessage: any }) {
+function EveningCheckInForm({ onSaved, initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: { onSaved?: () => void, initialValues: any, snackbarOpen: boolean, snackbarMessage: string, setSnackbarOpen: any, setSnackbarMessage: any }) {
   const [animalResult, setAnimalResult] = useState<AnimalAnalysisResult | null>(null)
   const form = useForm({
     defaultValues: initialValues,
@@ -113,6 +113,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         saveToday("evening", value)
         setSnackbarMessage("Evening check-in saved")
         setAnimalResult(analyzeEvening(value))
+        onSaved?.()
       } catch (error) {
         console.error("Submission error:", error)
         setSnackbarMessage("Failed to save evening check-in")
@@ -135,7 +136,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         }}
       >
         {/* Mood & Energy Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Mood & Energy
           </Typography>
@@ -227,7 +228,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Cognitive & Focus Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Cognitive & Focus
           </Typography>
@@ -319,7 +320,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Hobby Project Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Hobby Project
           </Typography>
@@ -353,7 +354,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Work Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Work
           </Typography>
@@ -415,7 +416,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Social Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Social
           </Typography>
@@ -477,7 +478,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Mental Health Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Mental Health
           </Typography>
@@ -527,7 +528,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Physical Health Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Physical Health
           </Typography>
@@ -589,7 +590,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Notes Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Notes
           </Typography>

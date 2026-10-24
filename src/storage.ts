@@ -30,3 +30,19 @@ export function saveToday<T>(kind: CheckInKind, data: T): void {
   const payload: Versioned<T> = { version: VERSION, data }
   localStorage.setItem(todayKey(kind), JSON.stringify(payload))
 }
+
+export function listDays<T>(kind: CheckInKind): { date: string; data: T }[] {
+  const prefix = `${PREFIX}:${kind}_`
+  const out: { date: string; data: T }[] = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (!key?.startsWith(prefix)) continue
+    try {
+      const raw = localStorage.getItem(key)
+      if (raw) out.push({ date: key.slice(prefix.length), data: (JSON.parse(raw) as Versioned<T>).data })
+    } catch (error) {
+      console.error("Failed to read check-in", key, error)
+    }
+  }
+  return out.sort((a, b) => b.date.localeCompare(a.date))
+}
