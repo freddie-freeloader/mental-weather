@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form"
 import { Box, Typography, Paper, Divider } from "@mui/material"
 import {
+  TextFieldComponent,
   NumberFieldComponent,
   SliderFieldComponent,
   TextAreaFieldComponent,
@@ -8,13 +9,14 @@ import {
 } from "./FormFields"
 import { Snackbar } from "@mui/material"
 import { useState } from "react"
-import { loadToday, saveToday } from "../storage"
+import { DEFAULT_SETTINGS, loadSettings, loadToday, saveSettings, saveToday } from "../storage"
 
 const DEFAULTS = {
       sleepQuality: 0,
       sleepHours: 0,
       bedTime: 0,
       wakeUpTime: 0,
+      medicationName: DEFAULT_SETTINGS.medicationName,
       promethazineTaken: 0,
       noiseWhileSleeping: 0,
       earlyWakeUpDueToNoise: 0,
@@ -39,7 +41,8 @@ export default function MorningCheckIn() {
   const [existing] = useState(() => loadToday<Values>("morning"))
   const [snackbarOpen, setSnackbarOpen] = useState(existing !== null)
   const [snackbarMessage, setSnackbarMessage] = useState(existing ? "Loaded existing report for today" : "")
-  const initialValues = existing ?? DEFAULTS
+  const [settings] = useState(loadSettings)
+  const initialValues: Values = { ...DEFAULTS, medicationName: settings.medicationName, ...existing }
 
   return (
     <MorningCheckInForm initialValues={initialValues} snackbarOpen={snackbarOpen} snackbarMessage={snackbarMessage} setSnackbarOpen={setSnackbarOpen} setSnackbarMessage={setSnackbarMessage} />
@@ -51,7 +54,9 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
     defaultValues: initialValues,
     onSubmit: async ({ value }) => {
       try {
-        saveToday("morning", value)
+        const medicationName = value.medicationName.trim() || DEFAULT_SETTINGS.medicationName
+        saveSettings({ medicationName })
+        saveToday("morning", { ...value, medicationName })
         setSnackbarMessage("Morning check-in saved")
       } catch (error) {
         console.error("Submission error:", error)
@@ -206,13 +211,25 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
           <Divider sx={{ mb: 2 }} />
 
           <form.Field
-            name="promethazineTaken"
+            name="medicationName"
             children={(field) => (
-              <NumberFieldComponent
-                field={field}
-                label="Promethazine taken (mg, e.g., 25 or 50)"
-                min={0}
-                step={1}
+              <TextFieldComponent field={field} label="Medication name" />
+            )}
+          />
+
+          <form.Subscribe
+            selector={(s) => s.values.medicationName}
+            children={(medicationName) => (
+              <form.Field
+                name="promethazineTaken"
+                children={(field) => (
+                  <NumberFieldComponent
+                    field={field}
+                    label={`${medicationName.trim() || DEFAULT_SETTINGS.medicationName} taken (mg, e.g., 25 or 50)`}
+                    min={0}
+                    step={1}
+                  />
+                )}
               />
             )}
           />

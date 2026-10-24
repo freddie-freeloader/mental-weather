@@ -31,6 +31,31 @@ export function saveToday<T>(kind: CheckInKind, data: T): void {
   localStorage.setItem(todayKey(kind), JSON.stringify(payload))
 }
 
+export interface Settings {
+  medicationName: string
+}
+
+export const DEFAULT_SETTINGS: Settings = { medicationName: "Promethazine" }
+
+const SETTINGS_KEY = `${PREFIX}:settings`
+
+export function loadSettings(): Settings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY)
+    if (!raw) return DEFAULT_SETTINGS
+    const data = (JSON.parse(raw) as Versioned<Partial<Settings>>).data
+    return { ...DEFAULT_SETTINGS, ...data }
+  } catch (error) {
+    console.error("Failed to load settings", error)
+    return DEFAULT_SETTINGS
+  }
+}
+
+export function saveSettings(settings: Settings): void {
+  const payload: Versioned<Settings> = { version: VERSION, data: settings }
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload))
+}
+
 export function listDays<T>(kind: CheckInKind): { date: string; data: T }[] {
   const prefix = `${PREFIX}:${kind}_`
   const out: { date: string; data: T }[] = []
