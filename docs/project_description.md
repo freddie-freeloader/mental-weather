@@ -37,13 +37,10 @@ I want to build a mood tracker that is only used by me -- it's called "Ophelia's
 - Use everything type safe & don't use `any`
 - Check `./docs/existing_mood_form_markdown.md` for needed form field types
 
-- Create example form that show cases all the form components
-
 ### Ticket 002: Build UI for logging current day (TODO)
 
 Summary: Build UI for logging current day
 
-- See `./frontend/src/components/ExampleForm.tsx` for reference on how to use the form components
 - Build form for morning check-in (based on `./docs/existing_mood_form_markdown.md`)
 - Build form for evening check-in (based on `./docs/existing_mood_form_markdown.md`)
 - Build UI for testing the forms

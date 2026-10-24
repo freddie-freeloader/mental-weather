@@ -5,7 +5,6 @@ test('loads and switches tabs', async ({ page }) => {
   await expect(page.getByRole('tab', { name: /Morning Check-In/ })).toBeVisible()
   await page.getByRole('tab', { name: /Evening Check-In/ }).click()
   await expect(page.getByRole('heading', { name: 'Evening Check-In' })).toBeVisible()
-  await page.getByRole('tab', { name: /Example Form/ }).click()
   await page.getByRole('tab', { name: /Morning Check-In/ }).click()
   await expect(page.getByRole('heading', { name: 'Morning Check-In' })).toBeVisible()
 })

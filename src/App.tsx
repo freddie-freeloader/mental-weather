@@ -4,7 +4,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { Container, Typography, Tabs, Tab, Box, Paper, styled } from '@mui/material';
 import MorningCheckIn from './components/MorningCheckIn';
 import EveningCheckIn from './components/EveningCheckIn';
-const ExampleForm = lazy(() => import('./components/ExampleForm'));
 const History = lazy(() => import('./components/History'));
 import AnimalDisplay from './components/AnimalDisplay';
 import kawaiiTheme from './theme';
@@ -74,7 +73,6 @@ const TABS = [
   '🌙 Evening Check-In',
   '🐾 My Animal',
   '📖 History',
-  '📝 Example Form',
 ];
 const TAB_ANIMAL = 2;
 
@@ -207,12 +205,6 @@ export default function App() {
           <TabPanel value={currentTab} index={3}>
             <Suspense fallback={null}>
               <History />
-            </Suspense>
-          </TabPanel>
-
-          <TabPanel value={currentTab} index={4}>
-            <Suspense fallback={null}>
-              <ExampleForm />
             </Suspense>
           </TabPanel>
         </TabPanelWrapper>

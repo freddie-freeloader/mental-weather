@@ -90,8 +90,8 @@ const ScoreBadge = styled(Chip)(() => ({
 // Score chip with kawaii colors
 function ScoreChip({ label, value }: { label: string, value: number }) {
 	// Determine color based on value
-	let bgColor = 'linear-gradient(135deg, #F0F8FF, #E6E6FA)'
-	let textColor = '#333333'
+	let bgColor: string
+	let textColor: string
 	
 	if (value >= 3) {
 		bgColor = 'linear-gradient(135deg, #D4EDDA, #C3E6CB)'
@@ -320,8 +320,9 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 						>
 							<Typography 
 								variant="body1" 
-								paragraph
+								component="p"
 								sx={{
+									mb: 2,
 									color: '#333333',
 									fontSize: '1.1rem',
 									lineHeight: 1.8,
@@ -333,8 +334,9 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 							<Typography 
 								variant="body2" 
 								color="text.secondary" 
-								paragraph
+								component="p"
 								sx={{
+									mb: 2,
 									color: 'rgba(0, 0, 0, 0.6)',
 									fontSize: '0.95rem',
 									lineHeight: 1.7,
@@ -386,9 +388,8 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 							<Stack 
 								direction="row"
 								useFlexGap
-								flexWrap="wrap"
 								spacing={1} 
-								sx={{ mt: 4, justifyContent: 'center' }}
+								sx={{ mt: 4, justifyContent: 'center', flexWrap: 'wrap' }}
 							>
 								<KawaiiButton variant="contained" onClick={handlePrev}>
 									⬅️ Previous

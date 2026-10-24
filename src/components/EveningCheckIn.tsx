@@ -617,7 +617,7 @@ function EveningCheckInForm({ onSaved, initialValues, snackbarOpen, snackbarMess
               {animalResult.animal.name}
             </Typography>
           </Box>
-          <Typography variant="body2" paragraph>
+          <Typography variant="body2" component="p" sx={{ mb: 2 }}>
             {animalResult.animal.message}
           </Typography>
         </Paper>

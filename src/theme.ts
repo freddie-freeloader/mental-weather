@@ -182,19 +182,19 @@ const kawaiiTheme = createTheme({
           '&:active': {
             transform: 'translateY(0)',
           },
-        },
-        containedPrimary: {
-          backgroundColor: pastelPalette.primary.main,
-          color: pastelPalette.text.primary,
-          '&:hover': {
-            backgroundColor: pastelPalette.primary.dark,
+          '&.MuiButton-containedPrimary': {
+            backgroundColor: pastelPalette.primary.main,
+            color: pastelPalette.text.primary,
+            '&:hover': {
+              backgroundColor: pastelPalette.primary.dark,
+            },
           },
-        },
-        containedSecondary: {
-          backgroundColor: pastelPalette.secondary.main,
-          color: pastelPalette.text.primary,
-          '&:hover': {
-            backgroundColor: pastelPalette.secondary.dark,
+          '&.MuiButton-containedSecondary': {
+            backgroundColor: pastelPalette.secondary.main,
+            color: pastelPalette.text.primary,
+            '&:hover': {
+              backgroundColor: pastelPalette.secondary.dark,
+            },
           },
         },
         outlined: {
