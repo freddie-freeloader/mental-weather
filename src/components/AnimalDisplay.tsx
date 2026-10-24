@@ -2,6 +2,7 @@ import { Box, Typography, Paper, Divider, Chip, CircularProgress, Button, Stack,
 import { useState, useEffect } from "react"
 import { keyframes } from '@mui/system';
 import { styled } from '@mui/material/styles';
+import { loadToday } from "../storage"
 
 interface AnimalArchetype {
 	name: string
@@ -334,6 +335,53 @@ const allAnimals: AnimalArchetype[] = [
 	},
 ]
 
+const invert = (score: number) => -score
+const round1 = (n: number) => Math.round(n * 10) / 10
+
+// Evening check-in values are numeric sliders; missing ones count as 0
+export function analyzeEvening(d: Record<string, number>): AnimalAnalysisResult {
+	const v = (k: string) => Number(d[k]) || 0
+	const energy = (v("averageEnergy") + invert(v("feelingTiredInEvening")) + invert(v("fatigueDuringDay"))) / 3
+	const mood = (v("averageMood") + v("selfWorth")) / 2
+	const cognitive = (
+		invert(v("feelingCognitivelyImpaired")) +
+		invert(v("difficultyConcentrating")) +
+		v("flightOfIdeas") +
+		invert(v("distractible")) +
+		v("programmedHobbyProject")
+	) / 5
+	const social = (v("hoursWithOtherPeople") + v("qualityOfSocialTime") + invert(v("socialInsecurity"))) / 3
+	const anxiety = (
+		v("overallAnxiety") + v("stress") + v("fearOfGettingManic") + v("overwhelmedByWork") + v("socialInsecurity")
+	) / 5 * 2.5
+
+	let best = allAnimals[0]
+	let min = Infinity
+	for (const a of allAnimals) {
+		const dist = Math.sqrt(
+			(energy - a.energy) ** 2 * 0.25 +
+			(mood - a.mood) ** 2 * 0.25 +
+			(cognitive - a.cognitive) ** 2 * 0.2 +
+			(social - a.social) ** 2 * 0.15 +
+			(anxiety - a.anxiety) ** 2 * 0.15,
+		)
+		if (dist < min) {
+			min = dist
+			best = a
+		}
+	}
+
+	return {
+		animal: best,
+		energyScore: round1(energy),
+		moodScore: round1(mood),
+		cognitiveScore: round1(cognitive),
+		socialScore: round1(social),
+		anxietyScore: round1(anxiety),
+		timestamp: new Date().toISOString(),
+	}
+}
+
 // Mock data generator for preview
 function generateMockAnalysis(animalIndex: number): AnimalAnalysisResult {
 	const animal = allAnimals[animalIndex]
@@ -389,34 +437,9 @@ export default function AnimalDisplay() {
 	const [showSparkles, setShowSparkles] = useState(true)
 
 	useEffect(() => {
-		const fetchAnimalAnalysis = async () => {
-			try {
-				const response = await fetch("/api/animal-analysis")
-				if (response.status === 200) {
-					const data = await response.json()
-					// Map backend data to include colors
-					const animalWithColors = allAnimals.find(a => a.name === data.animal.name) || allAnimals[0]
-					setAnalysis({
-						...data,
-						animal: animalWithColors
-					})
-				} else if (response.status === 204) {
-					// No content - no evening check-in yet today
-					setAnalysis(null)
-				} else {
-					// Backend not available - switch to preview mode
-					setPreviewMode(true)
-					setAnalysis(generateMockAnalysis(0))
-				}
-			} catch (err) {
-				// Network error - switch to preview mode
-				setPreviewMode(true)
-				setAnalysis(generateMockAnalysis(0))
-			} finally {
-				setIsLoading(false)
-			}
-		}
-		fetchAnimalAnalysis()
+		const evening = loadToday<Record<string, number>>("evening")
+		setAnalysis(evening ? analyzeEvening(evening) : null)
+		setIsLoading(false)
 		
 		// Toggle sparkles every 3 seconds
 		const sparkleInterval = setInterval(() => {
