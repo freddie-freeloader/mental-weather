@@ -18,6 +18,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 /**
  * This component is a placeholder for FormControl to correctly set the shrink label state on SSR.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function SSRInitialFilled(_props: BaseNumberField.Root.Props) {
   return null;
 }

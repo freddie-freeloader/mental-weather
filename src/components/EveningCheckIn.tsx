@@ -6,37 +6,13 @@ import {
   TextAreaFieldComponent,
   SubmitButtonComponent
 } from "./FormFields"
-import { useState, useEffect } from "react"
-import { Snackbar, Chip } from "@mui/material"
+import { useState } from "react"
+import { loadToday, saveToday } from "../storage"
+import { analyzeEvening, type AnimalAnalysisResult } from "../animals"
+import { Snackbar } from "@mui/material"
 
-interface AnimalArchetype {
-	name: string
-	emoji: string
-	description: string
-	message: string
-	energy: number
-	mood: number
-	cognitive: number
-	social: number
-	anxiety: number
-}
 
-interface AnimalAnalysisResult {
-	animal: AnimalArchetype
-	energyScore: number
-	moodScore: number
-	cognitiveScore: number
-	socialScore: number
-	anxietyScore: number
-	timestamp: string
-}
-
-export default function EveningCheckIn() {
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [animalResult, setAnimalResult] = useState<AnimalAnalysisResult | null>(null)
-  const [initialValues, setInitialValues] = useState({
+const DEFAULTS = {
       // Mood & Energy
       averageMood: 0,
       averageEnergy: 0,
@@ -82,81 +58,44 @@ export default function EveningCheckIn() {
 
       // Notes
       notes: ""
-  })
-
-  useEffect(() => {
-    const checkExistingReport = async () => {
-      try {
-        const response = await fetch("/api/evening-check-in")
-        if (response.status === 200) {
-          const data = await response.json()
-          if (data && data.data) {
-            setInitialValues(data.data)
-            setSnackbarMessage("Loaded existing report for today")
-            setSnackbarOpen(true)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to check existing report", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    checkExistingReport()
-  }, [])
-
-  if (isLoading) {
-    return <Box sx={{ p: 4, textAlign: 'center' }}><Typography>Loading...</Typography></Box>
   }
+type Values = typeof DEFAULTS
+
+interface FormProps {
+  onSaved?: () => void
+  initialValues: Values
+  snackbarOpen: boolean
+  snackbarMessage: string
+  setSnackbarOpen: (open: boolean) => void
+  setSnackbarMessage: (message: string) => void
+}
+
+export default function EveningCheckIn({ onSaved }: { onSaved?: () => void }) {
+  const [existing] = useState(() => loadToday<Values>("evening"))
+  const [snackbarOpen, setSnackbarOpen] = useState(existing !== null)
+  const [snackbarMessage, setSnackbarMessage] = useState(existing ? "Loaded existing report for today" : "")
+  const initialValues = existing ?? DEFAULTS
 
   return (
-    <EveningCheckInForm initialValues={initialValues} snackbarOpen={snackbarOpen} snackbarMessage={snackbarMessage} setSnackbarOpen={setSnackbarOpen} setSnackbarMessage={setSnackbarMessage} />
+    <EveningCheckInForm onSaved={onSaved} initialValues={initialValues} snackbarOpen={snackbarOpen} snackbarMessage={snackbarMessage} setSnackbarOpen={setSnackbarOpen} setSnackbarMessage={setSnackbarMessage} />
   )
 }
 
-function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: { initialValues: any, snackbarOpen: boolean, snackbarMessage: string, setSnackbarOpen: any, setSnackbarMessage: any }) {
+function EveningCheckInForm({ onSaved, initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: FormProps) {
+  const [animalResult, setAnimalResult] = useState<AnimalAnalysisResult | null>(null)
   const form = useForm({
     defaultValues: initialValues,
     onSubmit: async ({ value }) => {
       try {
-        const response = await fetch("/api/evening-check-in", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(value),
-        })
-
-        console.log("Response:", response)
-        const data = await response.json()
-        console.log("Data:", data)
-
-        if (data.status === "success") {
-          setSnackbarOpen(true)
-          setSnackbarMessage(data.message)
-          // After successful submission, fetch the animal analysis
-          try {
-            const analysisResponse = await fetch("/api/animal-analysis")
-            if (analysisResponse.status === 200) {
-              const analysisData = await analysisResponse.json()
-              setAnimalResult(analysisData)
-            }
-          } catch (error) {
-            console.error("Failed to fetch animal analysis:", error)
-          }
-        } else if (data.status === "error") {
-          setSnackbarOpen(true)
-          setSnackbarMessage(data.message)
-        } else {
-          setSnackbarOpen(true)
-          setSnackbarMessage("Unknown response")
-        }
-
+        saveToday("evening", value)
+        setSnackbarMessage("Evening check-in saved")
+        setAnimalResult(analyzeEvening(value))
+        onSaved?.()
       } catch (error) {
         console.error("Submission error:", error)
-        setSnackbarOpen(true)
-        setSnackbarMessage("Failed to submit evening check-in. Is the backend running?")
+        setSnackbarMessage("Failed to save evening check-in")
       }
+      setSnackbarOpen(true)
     }
   })
 
@@ -174,7 +113,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         }}
       >
         {/* Mood & Energy Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Mood & Energy
           </Typography>
@@ -266,7 +205,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Cognitive & Focus Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Cognitive & Focus
           </Typography>
@@ -358,7 +297,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Hobby Project Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Hobby Project
           </Typography>
@@ -392,7 +331,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Work Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Work
           </Typography>
@@ -454,7 +393,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Social Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Social
           </Typography>
@@ -516,7 +455,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Mental Health Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Mental Health
           </Typography>
@@ -566,7 +505,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Physical Health Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Physical Health
           </Typography>
@@ -628,7 +567,7 @@ function EveningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Notes Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Notes
           </Typography>

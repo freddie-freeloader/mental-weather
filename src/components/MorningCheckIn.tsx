@@ -7,13 +7,10 @@ import {
   SubmitButtonComponent
 } from "./FormFields"
 import { Snackbar } from "@mui/material"
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { loadToday, saveToday } from "../storage"
 
-export default function MorningCheckIn() {
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [initialValues, setInitialValues] = useState({
+const DEFAULTS = {
       sleepQuality: 0,
       sleepHours: 0,
       bedTime: 0,
@@ -27,73 +24,40 @@ export default function MorningCheckIn() {
       morningEnergy: 0,
       weight: 0,
       otherSleepNotes: ""
-  })
-
-  useEffect(() => {
-    const checkExistingReport = async () => {
-      try {
-        const response = await fetch("/api/morning-check-in")
-        if (response.status === 200) {
-          const data = await response.json()
-          if (data && data.data) {
-            setInitialValues(data.data)
-            setSnackbarMessage("Loaded existing report for today")
-            setSnackbarOpen(true)
-          }
-        }
-      } catch (error) {
-        console.error("Failed to check existing report", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    checkExistingReport()
-  }, [])
-
-  if (isLoading) {
-    return <Box sx={{ p: 4, textAlign: 'center' }}><Typography>Loading...</Typography></Box>
   }
+type Values = typeof DEFAULTS
+
+interface FormProps {
+  initialValues: Values
+  snackbarOpen: boolean
+  snackbarMessage: string
+  setSnackbarOpen: (open: boolean) => void
+  setSnackbarMessage: (message: string) => void
+}
+
+export default function MorningCheckIn() {
+  const [existing] = useState(() => loadToday<Values>("morning"))
+  const [snackbarOpen, setSnackbarOpen] = useState(existing !== null)
+  const [snackbarMessage, setSnackbarMessage] = useState(existing ? "Loaded existing report for today" : "")
+  const initialValues = existing ?? DEFAULTS
 
   return (
     <MorningCheckInForm initialValues={initialValues} snackbarOpen={snackbarOpen} snackbarMessage={snackbarMessage} setSnackbarOpen={setSnackbarOpen} setSnackbarMessage={setSnackbarMessage} />
   )
 }
 
-function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: { initialValues: any, snackbarOpen: boolean, snackbarMessage: string, setSnackbarOpen: any, setSnackbarMessage: any }) {
+function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setSnackbarOpen, setSnackbarMessage }: FormProps) {
   const form = useForm({
     defaultValues: initialValues,
     onSubmit: async ({ value }) => {
       try {
-        const response = await fetch("/api/morning-check-in", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(value),
-        })
-
-        console.log("Response:", response)
-
-        const data = await response.json()
-
-        console.log("Data:", data)
-
-        if (data.status === "success") {
-          setSnackbarOpen(true)
-          setSnackbarMessage(data.message)
-        } else if (data.status === "error") {
-          setSnackbarOpen(true)
-          setSnackbarMessage(data.message)
-        } else {
-          setSnackbarOpen(true)
-          setSnackbarMessage("Unknown response")
-        }
-
+        saveToday("morning", value)
+        setSnackbarMessage("Morning check-in saved")
       } catch (error) {
         console.error("Submission error:", error)
-        setSnackbarOpen(true)
-        setSnackbarMessage("Failed to submit morning check-in. Is the backend running?")
+        setSnackbarMessage("Failed to save morning check-in")
       }
+      setSnackbarOpen(true)
     }
   })
 
@@ -111,7 +75,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         }}
       >
         {/* Sleep Quality Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Sleep Quality
           </Typography>
@@ -188,7 +152,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Sleep Schedule Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Sleep Schedule
           </Typography>
@@ -235,7 +199,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Medication & Physical Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Medication & Physical
           </Typography>
@@ -267,7 +231,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Morning Mood & Energy Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Morning Mood & Energy
           </Typography>
@@ -303,7 +267,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Notes Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Notes
           </Typography>
