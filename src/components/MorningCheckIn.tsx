@@ -78,7 +78,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         }}
       >
         {/* Sleep Quality Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Sleep Quality
           </Typography>
@@ -155,7 +155,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Sleep Schedule Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Sleep Schedule
           </Typography>
@@ -202,7 +202,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Medication & Physical Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Medication & Physical
           </Typography>
@@ -234,7 +234,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Morning Mood & Energy Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Morning Mood & Energy
           </Typography>
@@ -270,7 +270,7 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
         </Paper>
 
         {/* Notes Section */}
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
           <Typography variant="h6" gutterBottom>
             Notes
           </Typography>

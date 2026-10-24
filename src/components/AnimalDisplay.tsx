@@ -47,7 +47,7 @@ const glow = keyframes`
 `;
 
 // Styled Paper with animation
-const AnimatedPaper = styled(Paper)(({ theme }) => ({
+const AnimatedPaper = styled(Paper)(() => ({
 	animation: `${glow} 3s ease-in-out infinite`,
 	transition: 'all 0.3s ease',
 	position: 'relative',
@@ -58,7 +58,7 @@ const AnimatedPaper = styled(Paper)(({ theme }) => ({
 }));
 
 // Styled animal emoji with bounce animation
-const BounceEmoji = styled(Typography)(({ theme }) => ({
+const BounceEmoji = styled(Typography)(() => ({
 	animation: `${bounce} 2s ease-in-out infinite`,
 	display: 'inline-block',
 	fontSize: '4rem',
@@ -77,7 +77,7 @@ const SparkleDiv = styled('div')({
 });
 
 // Kawaii button
-const KawaiiButton = styled(Button)(({ theme }) => ({
+const KawaiiButton = styled(Button)(() => ({
 	borderRadius: '24px',
 	padding: '8px 20px',
 	fontWeight: 600,
@@ -98,7 +98,7 @@ const KawaiiButton = styled(Button)(({ theme }) => ({
 }));
 
 // Score badge with kawaii styling
-const ScoreBadge = styled(Chip)(({ theme }) => ({
+const ScoreBadge = styled(Chip)(() => ({
 	borderRadius: '16px',
 	padding: '8px 12px',
 	fontWeight: 600,
@@ -428,17 +428,16 @@ function ScoreChip({ label, value }: { label: string, value: number }) {
 	)
 }
 
-export default function AnimalDisplay() {
+export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number }) {
 	const [analysis, setAnalysis] = useState<AnimalAnalysisResult | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
+	const [error] = useState<string | null>(null)
 	const [previewMode, setPreviewMode] = useState(false)
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [showSparkles, setShowSparkles] = useState(true)
 
 	useEffect(() => {
-		const evening = loadToday<Record<string, number>>("evening")
-		setAnalysis(evening ? analyzeEvening(evening) : null)
+		if (!previewMode) loadSaved()
 		setIsLoading(false)
 		
 		// Toggle sparkles every 3 seconds
@@ -447,7 +446,35 @@ export default function AnimalDisplay() {
 		}, 3000)
 		
 		return () => clearInterval(sparkleInterval)
-	}, [])
+	}, [refreshKey])
+
+	const loadSaved = () => {
+		const evening = loadToday<Record<string, number>>("evening")
+		setAnalysis(evening ? analyzeEvening(evening) : null)
+	}
+
+	const togglePreview = () => {
+		if (previewMode) {
+			setPreviewMode(false)
+			loadSaved()
+		} else {
+			setPreviewMode(true)
+			setAnalysis(generateMockAnalysis(currentIndex))
+		}
+	}
+
+	const previewToggle = (
+		<Box sx={{ textAlign: 'center', mb: 3 }}>
+			<KawaiiButton
+				variant="outlined"
+				size="small"
+				onClick={togglePreview}
+				data-testid="preview-toggle"
+			>
+				{previewMode ? '✖️ Exit preview' : '🎪 Preview all animals'}
+			</KawaiiButton>
+		</Box>
+	)
 
 	const handleNext = () => {
 		const nextIndex = (currentIndex + 1) % allAnimals.length
@@ -518,11 +545,24 @@ export default function AnimalDisplay() {
 
 	if (!analysis) {
 		return (
-			<Box sx={{ p: 4, textAlign: 'center' }}>
-				<Typography variant="body1" sx={{ color: '#FF69B4' }}>
-					Complete your evening check-in to discover your animal archetype for today! 🌸
+			<>
+			<Box
+				sx={{
+					p: { xs: 2, sm: 3 },
+					mb: 3,
+					textAlign: 'center',
+					border: '2px dashed #FFB6C1',
+					borderRadius: '24px',
+					background: 'rgba(255, 255, 255, 0.5)',
+				}}
+			>
+				<Typography sx={{ fontSize: '2.5rem' }}>🥚</Typography>
+				<Typography variant="body1" sx={{ color: '#FF69B4', fontWeight: 600 }}>
+					Your animal archetype is waiting! Complete today's evening check-in to hatch it 🌸
 				</Typography>
 			</Box>
+			{previewToggle}
+			</>
 		)
 	}
 
@@ -532,7 +572,7 @@ export default function AnimalDisplay() {
 				<AnimatedPaper 
 					elevation={3} 
 					sx={{
-						p: 4,
+						p: { xs: 2, sm: 4 },
 						background: analysis.animal.bgColor || 'linear-gradient(135deg, #FFF8F0, #FFE4E9)',
 						border: '2px solid #FFB6C1',
 						borderRadius: '24px',
@@ -549,7 +589,7 @@ export default function AnimalDisplay() {
 							sx={{
 								color: analysis.animal.color || '#FF69B4',
 								fontWeight: 700,
-								fontSize: '1.8rem',
+								fontSize: { xs: '1.4rem', sm: '1.8rem' },
 								textShadow: '0 2px 4px rgba(0,0,0,0.1)',
 							}}
 						>
@@ -600,7 +640,7 @@ export default function AnimalDisplay() {
 							sx={{
 								color: analysis.animal.color || '#FF69B4',
 								fontWeight: 700,
-								fontSize: '2.5rem',
+								fontSize: { xs: '1.9rem', sm: '2.5rem' },
 								mt: 1,
 							}}
 						>
@@ -679,7 +719,7 @@ export default function AnimalDisplay() {
 
 						<Box sx={{
 							display: 'grid', 
-							gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+							gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
 							gap: 2,
 							justifyContent: 'center',
 							maxWidth: '600px',
@@ -695,8 +735,10 @@ export default function AnimalDisplay() {
 
 						{previewMode && (
 							<Stack 
-								direction="row"} 
-								spacing={2} 
+								direction="row"
+								useFlexGap
+								flexWrap="wrap"
+								spacing={1} 
 								sx={{ mt: 4, justifyContent: 'center' }}
 							>
 								<KawaiiButton variant="contained" onClick={handlePrev}>
@@ -729,6 +771,7 @@ export default function AnimalDisplay() {
 						</Typography>
 					</Box>
 				</AnimatedPaper>
+				{previewToggle}
 			</Box>
 		</Fade>
 	)
