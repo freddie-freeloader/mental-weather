@@ -20,6 +20,9 @@ npm install
 npm run dev      # dev server
 npm run build    # static build in dist/
 npm run preview  # serve the build
+npm test         # unit tests (vitest)
+npm run test:e2e # Playwright (first: npx playwright install chromium)
+npm run lint
 ```
 
 `dist/` is static and can be hosted anywhere.

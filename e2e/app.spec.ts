@@ -101,3 +101,37 @@ test('history empty state', async ({ page }) => {
   await page.getByRole('tab', { name: /History/ }).click()
   await expect(page.getByText(/No past check-ins yet/)).toBeVisible()
 })
+
+test('saved check-ins reload on revisit', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('tab', { name: /Morning Check-In/ }).click()
+  await page.getByRole('button', { name: 'Submit Morning Check-In' }).click()
+  await expect(page.getByText('Morning check-in saved')).toBeVisible()
+
+  await page.reload()
+  await page.getByRole('tab', { name: /Morning Check-In/ }).click()
+  await expect(page.getByText('Loaded existing report for today')).toBeVisible()
+})
+
+test('saved evening result shows on My Animal after reload and in History', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('tab', { name: /Evening Check-In/ }).click()
+  await page.getByRole('button', { name: /Submit Evening Check-In/ }).click()
+  await page.reload()
+  await page.getByRole('tab', { name: /My Animal/ }).click()
+  await expect(page.getByTestId('animal-card')).toContainText('Your Animal Archetype Today')
+  await page.getByRole('tab', { name: /History/ }).click()
+  await expect(page.getByTestId('history-item')).toHaveCount(1)
+})
+
+test('works when served from a sub-path (GitHub Pages)', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  await page.route('**/mental-weather/**', (route) => {
+    const url = new URL(route.request().url())
+    return route.continue({ url: url.origin + url.pathname.replace('/mental-weather', '') + url.search })
+  })
+  await page.goto('/mental-weather/')
+  await expect(page.getByRole('tab', { name: /Morning Check-In/ })).toBeVisible()
+  expect(errors).toEqual([])
+})
