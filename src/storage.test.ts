@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { listDays, loadToday, saveToday } from './storage'
+import { exportAll, importAll, listDays, loadToday, saveToday } from './storage'
 
 beforeEach(() => localStorage.clear())
 
@@ -43,5 +43,14 @@ describe('storage', () => {
     localStorage.setItem('mental-weather:evening_2025-01-01', '{bad')
     expect(listDays('evening')).toEqual([])
     spy.mockRestore()
+  })
+
+  it('round-trips a backup and rejects foreign files', () => {
+    localStorage.setItem('mental-weather:morning_2025-01-01', JSON.stringify({ version: '1.0.0', data: { a: 1 } }))
+    const json = JSON.stringify(exportAll())
+    localStorage.clear()
+    expect(importAll(json)).toBe(1)
+    expect(listDays('morning')).toEqual([{ date: '2025-01-01', data: { a: 1 } }])
+    expect(() => importAll('{"x":1}')).toThrow()
   })
 })

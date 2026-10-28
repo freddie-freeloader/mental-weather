@@ -1,3 +1,4 @@
+import { loadQuestionnaire, sanitizeQuestionnaire, saveQuestionnaire } from "./questionnaire"
 const VERSION = "1.0.0"
 const PREFIX = "mental-weather"
 
@@ -118,6 +119,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = { medicationName: "Promethazine" }
 
 const SETTINGS_KEY = `${PREFIX}:settings`
+export const QUESTIONNAIRE_KEY = `${PREFIX}:questionnaire`
 
 export function loadSettings(): Settings {
   try {
@@ -172,4 +174,50 @@ export function listDays<T>(kind: CheckInKind): { date: string; data: T }[] {
     console.error("Failed to list days", error)
     return []
   }
+}
+
+export interface Backup {
+  app: "mental-weather"
+  version: string
+  exportedAt: string
+  settings: Settings
+  entries: Record<string, unknown>
+  questionnaire?: unknown
+}
+
+export function exportAll(): Backup {
+  const entries: Record<string, unknown> = {}
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (!key?.startsWith(`${PREFIX}:`) || key === SETTINGS_KEY || key === QUESTIONNAIRE_KEY) continue
+    try {
+      const raw = localStorage.getItem(key)
+      if (raw) entries[key.slice(PREFIX.length + 1)] = (JSON.parse(raw) as Versioned<unknown>).data
+    } catch (error) {
+      console.error("Failed to export", key, error)
+    }
+  }
+  return { app: "mental-weather", version: VERSION, exportedAt: new Date().toISOString(), settings: loadSettings(), entries, questionnaire: loadQuestionnaire() }
+}
+
+const ENTRY_KEY = /^(morning|evening)_\d{4}-\d{2}-\d{2}$/
+
+// Overwrites entries with the same day; returns the number of imported entries.
+export function importAll(json: string): number {
+  const parsed: unknown = JSON.parse(json)
+  if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid backup file")
+  const b = parsed as Partial<Backup>
+  if (b.app !== "mental-weather" || typeof b.entries !== "object" || b.entries === null) {
+    throw new Error("Not a mental-weather backup")
+  }
+  let count = 0
+  for (const [key, data] of Object.entries(b.entries)) {
+    if (!ENTRY_KEY.test(key)) continue
+    const payload: Versioned<unknown> = { version: VERSION, data }
+    localStorage.setItem(`${PREFIX}:${key}`, JSON.stringify(payload))
+    count++
+  }
+  if (b.questionnaire) saveQuestionnaire(sanitizeQuestionnaire(b.questionnaire))
+  if (b.settings) saveSettings({ ...DEFAULT_SETTINGS, ...b.settings })
+  return count
 }

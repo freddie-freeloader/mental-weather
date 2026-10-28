@@ -5,6 +5,7 @@ import { Container, Typography, Tabs, Tab, Box, Paper, styled } from '@mui/mater
 import MorningCheckIn from './components/MorningCheckIn';
 import EveningCheckIn from './components/EveningCheckIn';
 const History = lazy(() => import('./components/History'));
+const QuestionnaireEditor = lazy(() => import('./components/QuestionnaireEditor'));
 import AnimalDisplay from './components/AnimalDisplay';
 import kawaiiTheme from './theme';
 
@@ -73,6 +74,7 @@ const TABS = [
   '🌙 Evening Check-In',
   '🐾 My Animal',
   '📖 History',
+  '⚙️ Customize',
 ];
 const TAB_ANIMAL = 2;
 
@@ -205,6 +207,12 @@ export default function App() {
           <TabPanel value={currentTab} index={3}>
             <Suspense fallback={null}>
               <History />
+            </Suspense>
+          </TabPanel>
+
+          <TabPanel value={currentTab} index={4}>
+            <Suspense fallback={null}>
+              <QuestionnaireEditor />
             </Suspense>
           </TabPanel>
         </TabPanelWrapper>
