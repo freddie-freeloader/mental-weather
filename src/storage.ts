@@ -200,7 +200,7 @@ export function exportAll(): Backup {
   return { app: "mental-weather", version: VERSION, exportedAt: new Date().toISOString(), settings: loadSettings(), entries, questionnaire: loadQuestionnaire() }
 }
 
-const ENTRY_KEY = /^(morning|evening)_\d{4}-\d{2}-\d{2}$/
+const ENTRY_KEY = /^(morning|evening|coffee)_\d{4}-\d{2}-\d{2}$/
 
 // Overwrites entries with the same day; returns the number of imported entries.
 export function importAll(json: string): number {

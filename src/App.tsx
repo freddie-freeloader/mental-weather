@@ -6,6 +6,8 @@ import MorningCheckIn from './components/MorningCheckIn';
 import EveningCheckIn from './components/EveningCheckIn';
 const History = lazy(() => import('./components/History'));
 const QuestionnaireEditor = lazy(() => import('./components/QuestionnaireEditor'));
+import ZiggyStardustOMeter from './components/ZiggyStardustOMeter';
+import CoffeeTab from './components/CoffeeTab';
 import AnimalDisplay from './components/AnimalDisplay';
 import kawaiiTheme from './theme';
 
@@ -74,6 +76,8 @@ const TABS = [
   '🌙 Evening Check-In',
   '🐾 My Animal',
   '📖 History',
+  '☕ Coffee',
+  '⚡ Ziggy',
   '⚙️ Customize',
 ];
 const TAB_ANIMAL = 2;
@@ -211,6 +215,14 @@ export default function App() {
           </TabPanel>
 
           <TabPanel value={currentTab} index={4}>
+            <CoffeeTab />
+          </TabPanel>
+
+          <TabPanel value={currentTab} index={5}>
+            <ZiggyStardustOMeter />
+          </TabPanel>
+
+          <TabPanel value={currentTab} index={6}>
             <Suspense fallback={null}>
               <QuestionnaireEditor />
             </Suspense>

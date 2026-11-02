@@ -134,3 +134,33 @@ test('works when served from a sub-path (GitHub Pages)', async ({ page }) => {
   await expect(page.getByRole('tab', { name: /Morning Check-In/ })).toBeVisible()
   expect(errors).toEqual([])
 })
+
+test('coffee events are logged, persisted and undoable', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('tab', { name: /Coffee/ }).click()
+  await expect(page.getByText('No coffee logged yet.')).toBeVisible()
+  await page.getByRole('button', { name: '+ Cup' }).click()
+  await page.getByRole('button', { name: '+ Cup' }).click()
+  await expect(page.getByText('2 / 10 cups')).toBeVisible()
+
+  await page.reload()
+  await page.getByRole('tab', { name: /Coffee/ }).click()
+  await expect(page.getByText('2 / 10 cups')).toBeVisible()
+  const keys = await page.evaluate(() => Object.keys(localStorage))
+  expect(keys.some((k) => k.startsWith('mental-weather:coffee_'))).toBe(true)
+
+  await page.getByRole('button', { name: 'Undo last' }).click()
+  await expect(page.getByText('1 / 10 cups')).toBeVisible()
+})
+
+test('ziggy meter reads today\'s check-in', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('tab', { name: /Ziggy/ }).click()
+  await expect(page.getByText('Fill in a check-in today')).toBeVisible()
+
+  await page.getByRole('tab', { name: /Morning Check-In/ }).click()
+  await page.getByRole('button', { name: 'Submit Morning Check-In' }).click()
+  await expect(page.getByText('Morning Check-In saved')).toBeVisible()
+  await page.getByRole('tab', { name: /Ziggy/ }).click()
+  await expect(page.getByText('5 / 10')).toBeVisible()
+})

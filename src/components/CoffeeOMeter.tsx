@@ -1,7 +1,7 @@
 import { Box, Typography, LinearProgress, Paper, styled, keyframes } from "@mui/material"
 
 // Coffee cup colors based on caffeine level
-const COFFEE_COLORS = {
+const COFFEE_COLORS: Record<number, string> = {
   0: '#F5F5DC', // Cream - no coffee
   1: '#FFA07A', // Light Salmon - 1 cup
   2: '#FF8C00', // Dark Orange - 2 cups
@@ -81,7 +81,7 @@ const StyledProgress = styled(LinearProgress)<{ cups: number }>(({ cups }) => {
 })
 
 // Caffeine level messages
-const CAFFEINE_MESSAGES = {
+const CAFFEINE_MESSAGES: Record<number, string> = {
   0: "No coffee today? Feeling brave! ☕️",
   1: "Just one cup - nice and gentle! ☕",
   2: "Two cups - getting productive! ☕☕",
