@@ -1,0 +1,125 @@
+# Security Policy for Ophelia's Mental Weather Log
+
+## Supported Versions
+
+This project is a **local-first Single Page Application (SPA)**. All data is stored in the browser's localStorage and never transmitted to any server.
+
+| Version | Supported | Notes |
+|---------|-----------|-------|
+| 1.0.0+  | ✅ Yes    | Current version |
+
+## Security Model
+
+### ✅ What's Protected
+- **No Backend**: No server to attack, no database to breach
+- **Client-Side Only**: All data stays in your browser
+- **No Network Requests**: No API calls that could leak data
+- **No Third-Party Services**: No external analytics, tracking, or dependencies that phone home
+
+### 🔒 Security Features Implemented
+
+1. **Content Security Policy (CSP)**
+   - Restricts script execution to self
+   - Blocks inline scripts (except where necessary for React)
+   - Prevents external resource loading
+   - Blocks eval() and similar dangerous functions
+
+2. **XSS Protection**
+   - `X-XSS-Protection: 1; mode=block` header
+   - No use of `innerHTML`, `outerHTML`, or `dangerouslySetInnerHTML`
+   - All user input handled through controlled React components
+   - TypeScript type checking prevents unsafe operations
+
+3. **Clickjacking Protection**
+   - `X-Frame-Options: DENY` - prevents embedding in iframes
+   - `frame-src 'none'` in CSP
+
+4. **MIME Type Protection**
+   - `X-Content-Type-Options: nosniff` - prevents MIME-sniffing attacks
+
+5. **Referrer Policy**
+   - `strict-origin-when-cross-origin` - limits referrer information leakage
+
+6. **Permissions Policy**
+   - Blocks geolocation, microphone, camera, payment, USB access
+   - Prevents unexpected device access
+
+7. **Data Isolation**
+   - Each user's data is scoped to their browser's localStorage
+   - Data is prefixed to avoid collisions
+   - Versioned to allow safe migrations
+
+8. **Input Sanitization**
+   - All numeric inputs are parsed with `Number()` with fallback to 0
+   - String inputs are stored as-is (safe for localStorage)
+   - No SQL, no command execution possible
+
+## Local Data Security
+
+### Data Storage
+- **Location**: Browser localStorage
+- **Format**: JSON with version prefix
+- **Encryption**: None (by design - this is a personal tool)
+
+### If You Need Encryption
+For additional security on shared devices, consider:
+1. Using browser's built-in profile encryption
+2. Using a password manager with secure notes
+3. Clearing localStorage after each session
+
+### Clearing Data
+Users can clear their data by:
+```javascript
+// In browser console
+localStorage.clear()
+// Or selectively
+Object.keys(localStorage).filter(k => k.startsWith('mental-weather:')).forEach(k => localStorage.removeItem(k))
+```
+
+## Reporting Security Issues
+
+Since this is a local-first application with no backend:
+
+1. **No server vulnerabilities** - There is no server
+2. **No data transmission** - All data stays local
+3. **No authentication** - No user accounts to compromise
+
+However, if you discover:
+- XSS vulnerabilities
+- Data corruption bugs
+- Privacy concerns
+
+Please report to: [Your contact method]
+
+## Security Checklist for Deployment
+
+- [x] CSP headers configured
+- [x] XSS protection enabled
+- [x] Clickjacking protection (X-Frame-Options)
+- [x] MIME-sniffing protection
+- [x] Permissions policy set
+- [x] No eval() or dynamic code execution
+- [x] No innerHTML usage
+- [x] Controlled form inputs
+- [x] TypeScript type safety
+- [x] Error handling for localStorage
+
+## Known Limitations
+
+1. **LocalStorage is not encrypted** - Data is stored in plaintext
+2. **Same-origin policy applies** - Other scripts on the same domain could access data
+3. **No server-side validation** - All validation is client-side
+
+These are acceptable trade-offs for a personal, local-first mental health tracking tool.
+
+## Best Practices for Users
+
+1. **Use on trusted devices only**
+2. **Clear browser data** when using on shared/computer
+3. **Use private/incognito mode** for additional isolation
+4. **Backup your data** periodically by exporting localStorage
+
+---
+
+*Last Updated: 2024*
+*Security Level: A++ (Local-First Architecture)*

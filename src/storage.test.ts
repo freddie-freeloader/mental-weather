@@ -29,10 +29,10 @@ describe('storage', () => {
 
   it('lists days newest first, only for the requested kind', () => {
     const v = (data: unknown) => JSON.stringify({ version: '1.0.0', data })
-    localStorage.setItem('mental-weather:evening_2025-01-01', v(1))
-    localStorage.setItem('mental-weather:evening_2025-03-01', v(3))
-    localStorage.setItem('mental-weather:evening_2025-02-01', v(2))
-    localStorage.setItem('mental-weather:morning_2025-04-01', v(4))
+    localStorage.setItem('mental-weather:evening_2025-01-01', v({ mood: 1 }))
+    localStorage.setItem('mental-weather:evening_2025-03-01', v({ mood: 3 }))
+    localStorage.setItem('mental-weather:evening_2025-02-01', v({ mood: 2 }))
+    localStorage.setItem('mental-weather:morning_2025-04-01', v({ mood: 4 }))
     localStorage.setItem('other', 'x')
     expect(listDays('evening').map((d) => d.date)).toEqual(['2025-03-01', '2025-02-01', '2025-01-01'])
     expect(listDays('morning')).toHaveLength(1)

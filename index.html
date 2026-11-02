@@ -6,6 +6,25 @@
     <meta name="viewport" content="initial-scale=1, width=device-width" />
     <title>Ophelia's Mental Weather Log</title>
     <meta name="theme-color" content="#FFB6C1" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=()" />
+    
+    <!-- Prevent clickjacking and MIME-sniffing -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    
+    <!-- PWA / Mobile Web App Capable -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    
+    <!-- Disable phone number detection on iOS -->
+    <meta name="format-detection" content="telephone=no" />
   </head>
   <body>
     <div id="root"></div>
