@@ -8,6 +8,7 @@ const History = lazy(() => import('./components/History'));
 const QuestionnaireEditor = lazy(() => import('./components/QuestionnaireEditor'));
 import ZiggyStardustOMeter from './components/ZiggyStardustOMeter';
 import CoffeeTab from './components/CoffeeTab';
+import WasserTab from './components/WasserTab';
 import AnimalDisplay from './components/AnimalDisplay';
 import kawaiiTheme from './theme';
 
@@ -77,6 +78,7 @@ const TABS = [
   '🐾 My Animal',
   '📖 History',
   '☕ Coffee',
+  '💦 Wasser',
   '⚡ Ziggy',
   '⚙️ Customize',
 ];
@@ -219,6 +221,10 @@ export default function App() {
           </TabPanel>
 
           <TabPanel value={currentTab} index={5}>
+            <WasserTab />
+          </TabPanel>
+
+          <TabPanel value={currentTab} index={6}>
             <ZiggyStardustOMeter />
           </TabPanel>
 
