@@ -215,7 +215,7 @@ export function validateCheckInData(data: unknown): boolean {
   const obj = data as Record<string, unknown>
   
   // Check that all values are valid types
-  for (const [key, value] of Object.entries(obj)) {
+  for (const [, value] of Object.entries(obj)) {
     const valueType = typeof value
     
     if (value === null || value === undefined) {

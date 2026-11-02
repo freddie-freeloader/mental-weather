@@ -10,6 +10,7 @@ import {
 import { Snackbar } from "@mui/material"
 import { useState } from "react"
 import { DEFAULT_SETTINGS, loadSettings, loadToday, saveSettings, saveToday } from "../storage"
+import CoffeeOMeter from "./CoffeeOMeter"
 
 const DEFAULTS = {
       sleepQuality: 0,
@@ -25,6 +26,9 @@ const DEFAULTS = {
       morningMood: 0,
       morningEnergy: 0,
       weight: 0,
+      coffeeCups: 1,
+      coffeeType: "Black",
+      coffeeNotes: "",
       otherSleepNotes: ""
   }
 type Values = typeof DEFAULTS
@@ -278,6 +282,57 @@ function MorningCheckInForm({ initialValues, snackbarOpen, snackbarMessage, setS
                 max={5}
                 step={1}
                 marks
+              />
+            )}
+          />
+        </Paper>
+
+        {/* Coffee-O-Meter Section */}
+        <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
+          <Typography variant="h6" gutterBottom>
+            ☕ Coffee-O-Meter
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+
+          <form.Subscribe
+            selector={(s) => s.values.coffeeCups}
+            children={(coffeeCups) => (
+              <CoffeeOMeter cups={coffeeCups || 0} />
+            )}
+          />
+
+          <form.Field
+            name="coffeeCups"
+            children={(field) => (
+              <NumberFieldComponent
+                field={field}
+                label="Number of coffee cups ☕"
+                min={0}
+                max={10}
+                step={1}
+              />
+            )}
+          />
+
+          <form.Field
+            name="coffeeType"
+            children={(field) => (
+              <TextFieldComponent 
+                field={field} 
+                label="Coffee type (e.g., Black, Latte, Espresso, Cold Brew)" 
+                placeholder="Black"
+              />
+            )}
+          />
+
+          <form.Field
+            name="coffeeNotes"
+            children={(field) => (
+              <TextAreaFieldComponent
+                field={field}
+                label="Coffee notes"
+                placeholder="e.g., Strong, weak, with oat milk, tasted amazing..."
+                rows={2}
               />
             )}
           />
