@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Box, Typography, LinearProgress, Paper, styled, keyframes, IconButton } from "@mui/material"
 import { AddCircle, RemoveCircle, Opacity } from "@mui/icons-material"
 import { addWasserGlass, undoWasserGlass, getGlassCount } from "../wasser"
@@ -185,11 +185,6 @@ interface WasserOMeterProps {
 export default function WasserOMeter({ onGlassAdded, onGlassRemoved }: WasserOMeterProps) {
   const [glasses, setGlasses] = useState(() => getGlassCount())
   const [animationKey, setAnimationKey] = useState(0)
-
-  // Reload count when component mounts
-  useEffect(() => {
-    setGlasses(getGlassCount())
-  }, [])
 
   const handleAddGlass = () => {
     addWasserGlass()

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Box, Typography, Paper, styled } from "@mui/material"
 import WasserOMeter from "./WasserOMeter"
 import { getGlassCount } from "../wasser"
@@ -29,22 +29,8 @@ const StatsBox = styled(Paper)(() => ({
 
 export default function WasserTab() {
   const [todayCount, setTodayCount] = useState(() => getGlassCount())
-  const [totalCount, setTotalCount] = useState(0)
-  const [streak, setStreak] = useState(0)
-
-  // Reload data when component mounts or count changes
-  useEffect(() => {
-    setTodayCount(getGlassCount())
-    // Calculate some stats (simplified for now)
-    calculateStats()
-  }, [])
-
-  const calculateStats = () => {
-    // For now, just set some placeholder values
-    // In a real implementation, you'd read from localStorage
-    setTotalCount(157) // Placeholder
-    setStreak(3) // Placeholder
-  }
+  const [totalCount] = useState(157)
+  const [streak] = useState(3)
 
   const handleGlassAdded = () => {
     setTodayCount(getGlassCount())
