@@ -62,35 +62,35 @@ export function sanitizeNumber(input: unknown, min: number = -10, max: number = 
   return Math.max(min, Math.min(max, num))
 }
 
+const DANGEROUS_KEYS: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype'])
+
+export function isDangerousKey(key: string): boolean {
+  return DANGEROUS_KEYS.has(key)
+}
+
 /**
- * Sanitize an object's values
- * Recursively sanitizes all string and number values
+ * Clone JSON-ish data for storage.
+ * Keeps strings and arrays as given. Drops prototype-pollution keys.
+ * Does not HTML-escape: this app renders through React, which escapes text.
  */
-export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
-  if (obj === null || typeof obj !== 'object') {
-    return obj as T
-  }
-  
-  const result: Record<string, unknown> = {}
-  
-  for (const [key, value] of Object.entries(obj)) {
-    if (typeof value === 'string') {
-      result[key] = sanitizeString(value)
-    } else if (typeof value === 'number') {
-      result[key] = value
-    } else if (value === null || value === undefined) {
-      result[key] = null
-    } else if (typeof value === 'object') {
-      result[key] = sanitizeObject(value as Record<string, unknown>)
-    } else if (typeof value === 'boolean') {
-      result[key] = value
-    } else {
-      // Unknown type - convert to string and sanitize
-      result[key] = sanitizeString(String(value))
+export function sanitizeObject(value: unknown): unknown {
+  return sanitizeValue(value)
+}
+
+function sanitizeValue(value: unknown): unknown {
+  if (value === null || value === undefined) return null
+  if (typeof value === 'string' || typeof value === 'boolean') return value
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null
+  if (Array.isArray(value)) return value.map((item) => sanitizeValue(item))
+  if (typeof value === 'object') {
+    const result: Record<string, unknown> = Object.create(null)
+    for (const [key, entry] of Object.entries(value)) {
+      if (isDangerousKey(key)) continue
+      result[key] = sanitizeValue(entry)
     }
+    return result
   }
-  
-  return result as T
+  return null
 }
 
 // ============================================================================
@@ -129,40 +129,45 @@ export function safeGetItem(key: string): string | null {
 }
 
 /**
- * Safely set an item in localStorage
- * Validates the key and sanitizes the value
+ * Safely set an item in localStorage.
+ * Validates the key, strips prototype-pollution keys, and enforces the size limit.
+ * User text is stored exactly as given.
  */
-export function safeSetItem(key: string, value: unknown): void {
+export function safeSetItem(key: string, value: unknown): boolean {
   if (!validateStorageKey(key)) {
     console.warn(`[SECURITY] Attempted to set invalid storage key: ${key}`)
-    return
+    return false
   }
-  
+
   let safeValue: string
-  
+
   if (value === null || value === undefined) {
     safeValue = ''
   } else if (typeof value === 'string') {
-    safeValue = sanitizeString(value)
+    safeValue = value
   } else if (typeof value === 'number') {
-    safeValue = String(value)
+    safeValue = Number.isFinite(value) ? String(value) : ''
   } else if (typeof value === 'boolean') {
     safeValue = String(value)
   } else {
     try {
-      // For objects, we need to stringify them
-      // But first sanitize the object
-      const sanitized = sanitizeObject(value as Record<string, unknown>)
-      safeValue = JSON.stringify(sanitized)
+      safeValue = JSON.stringify(sanitizeObject(value))
     } catch {
-      safeValue = ''
+      return false
     }
   }
-  
+
+  if (safeValue.length > MAX_DATA_SIZE) {
+    console.error('[SECURITY] Data size exceeds limit, not saving')
+    return false
+  }
+
   try {
     localStorage.setItem(key, safeValue)
+    return true
   } catch (error) {
     console.error(`[SECURITY] Failed to set item in localStorage:`, error)
+    return false
   }
 }
 

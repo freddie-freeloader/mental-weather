@@ -39,9 +39,28 @@ describe('coffee events', () => {
 
   it('drops invalid timestamps and tolerates corrupt storage', () => {
     expect(sanitizeCoffeeDay({ events: 'nope,2025-04-01T08:00:00.000Z' }).events).toEqual(['2025-04-01T08:00:00.000Z'])
+    expect(sanitizeCoffeeDay({ events: { 0: '2025-04-01T08:00:00.000Z', 1: 'nope' } }).events).toEqual(['2025-04-01T08:00:00.000Z'])
     expect(sanitizeCoffeeDay(null).events).toEqual([])
     localStorage.setItem('mental-weather:coffee_2025-04-01', '{not json')
     expect(loadCoffeeToday(new Date('2025-04-01T08:00:00')).events).toEqual([])
+  })
+
+  it('stores an array and still reads the legacy comma-joined string', () => {
+    const when = new Date('2025-04-01T08:00:00')
+    addCoffeeEvent(when)
+    const raw = localStorage.getItem('mental-weather:coffee_2025-04-01')
+    expect(raw).toBeTruthy()
+    if (!raw) return
+    expect(JSON.parse(raw)).toEqual({ version: '1.0.0', data: { events: [when.toISOString()] } })
+
+    localStorage.setItem(
+      'mental-weather:coffee_2025-04-02',
+      JSON.stringify({ version: '1.0.0', data: { events: '2025-04-02T08:00:00.000Z,2025-04-02T09:00:00.000Z' } }),
+    )
+    expect(loadCoffeeToday(new Date('2025-04-02T12:00:00')).events).toEqual([
+      '2025-04-02T08:00:00.000Z',
+      '2025-04-02T09:00:00.000Z',
+    ])
   })
 
   it('survives export and import', () => {

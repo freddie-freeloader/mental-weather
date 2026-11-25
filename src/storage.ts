@@ -17,6 +17,8 @@ import {
   initSecurity,
   safeGetItem,
   safeSetItem,
+  validateStorageKey as isSafeStorageKey,
+  isDangerousKey,
 } from './security'
 
 // Initialize security on module load
@@ -200,24 +202,40 @@ export function exportAll(): Backup {
   return { app: "mental-weather", version: VERSION, exportedAt: new Date().toISOString(), settings: loadSettings(), entries, questionnaire: loadQuestionnaire() }
 }
 
-const ENTRY_KEY = /^(morning|evening|coffee)_\d{4}-\d{2}-\d{2}$/
+const MAX_BACKUP_CHARS = MAX_DATA_SIZE * MAX_ENTRIES * 4
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+// Any key exportAll writes, except the dedicated settings/questionnaire fields.
+function isRestorableEntrySuffix(suffix: string): boolean {
+  if (suffix.length === 0 || suffix.length > 200) return false
+  if (suffix === "settings" || suffix === "questionnaire") return false
+  if (isDangerousKey(suffix)) return false
+  return isSafeStorageKey(`${PREFIX}:${suffix}`)
+}
 
 // Overwrites entries with the same day; returns the number of imported entries.
 export function importAll(json: string): number {
+  if (json.length > MAX_BACKUP_CHARS) throw new Error("Backup file is too large")
   const parsed: unknown = JSON.parse(json)
-  if (typeof parsed !== "object" || parsed === null) throw new Error("Invalid backup file")
-  const b = parsed as Partial<Backup>
-  if (b.app !== "mental-weather" || typeof b.entries !== "object" || b.entries === null) {
+  if (!isRecord(parsed)) throw new Error("Invalid backup file")
+  if (parsed.app !== "mental-weather" || !isRecord(parsed.entries)) {
     throw new Error("Not a mental-weather backup")
   }
   let count = 0
-  for (const [key, data] of Object.entries(b.entries)) {
-    if (!ENTRY_KEY.test(key)) continue
-    const payload: Versioned<unknown> = { version: VERSION, data }
-    localStorage.setItem(`${PREFIX}:${key}`, JSON.stringify(payload))
-    count++
+  for (const [key, data] of Object.entries(parsed.entries)) {
+    if (!isRestorableEntrySuffix(key) || !isRecord(data)) continue
+    const stored = safeSetItem(`${PREFIX}:${key}`, { version: VERSION, data })
+    if (stored) count++
   }
-  if (b.questionnaire) saveQuestionnaire(sanitizeQuestionnaire(b.questionnaire))
-  if (b.settings) saveSettings({ ...DEFAULT_SETTINGS, ...b.settings })
+  if (parsed.questionnaire) saveQuestionnaire(sanitizeQuestionnaire(parsed.questionnaire))
+  if (isRecord(parsed.settings)) {
+    const medicationName = parsed.settings.medicationName
+    saveSettings({
+      medicationName: typeof medicationName === "string" ? medicationName : DEFAULT_SETTINGS.medicationName,
+    })
+  }
   return count
 }

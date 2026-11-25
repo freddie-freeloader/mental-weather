@@ -1,6 +1,6 @@
 import { useForm } from "@tanstack/react-form"
 import { Box, Typography, Paper, Divider, Snackbar } from "@mui/material"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   TextFieldComponent,
   NumberFieldComponent,
@@ -13,6 +13,7 @@ import {
   MEDICATION_TOKEN,
   defaultValues,
   loadQuestionnaire,
+  QUESTIONNAIRE_CHANGED_EVENT,
   sectionsOf,
   visibleQuestions,
   type Question,
@@ -32,8 +33,18 @@ interface Props {
   children?: (values: Values | null) => React.ReactNode
 }
 
-export default function CheckInForm({ kind, title, onSaved, children }: Props) {
-  const [questions] = useState(() => visibleQuestions(loadQuestionnaire()[kind]))
+export default function CheckInForm(props: Props) {
+  const [revision, setRevision] = useState(0)
+  useEffect(() => {
+    const onChange = () => setRevision((n) => n + 1)
+    window.addEventListener(QUESTIONNAIRE_CHANGED_EVENT, onChange)
+    return () => window.removeEventListener(QUESTIONNAIRE_CHANGED_EVENT, onChange)
+  }, [])
+  return <CheckInFormBody key={revision} {...props} />
+}
+
+function CheckInFormBody({ kind, title, onSaved, children }: Props) {
+  const questions = visibleQuestions(loadQuestionnaire()[kind])
   const [existing] = useState(() => loadToday<Values>(kind))
   const [settings] = useState(loadSettings)
   const [snackbarOpen, setSnackbarOpen] = useState(existing !== null)

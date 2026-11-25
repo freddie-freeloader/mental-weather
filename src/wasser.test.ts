@@ -68,6 +68,12 @@ describe("Wasser Module", () => {
       expect(result.glasses).toEqual(["2024-01-01T10:00:00.000Z", "2024-01-01T11:00:00.000Z"])
     })
 
+    it("should handle the legacy index-object form", () => {
+      const input = { glasses: { 0: "2024-01-01T10:00:00.000Z", 1: "2024-01-01T11:00:00.000Z" } }
+      const result = sanitizeWasserDay(input)
+      expect(result.glasses).toEqual(["2024-01-01T10:00:00.000Z", "2024-01-01T11:00:00.000Z"])
+    })
+
     it("should handle empty input", () => {
       const result = sanitizeWasserDay(null)
       expect(result.glasses).toEqual([])

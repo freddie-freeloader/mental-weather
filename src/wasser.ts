@@ -1,4 +1,5 @@
 import { safeGetItem, safeSetItem, validateVersionedData } from "./security"
+import { readTimestampField } from "./timestamps"
 
 const VERSION = "1.0.0"
 const MAX_GLASSES_PER_DAY = 20
@@ -13,12 +14,7 @@ function dayKey(date: Date): string {
 }
 
 export function sanitizeWasserDay(data: unknown): WasserDay {
-  const raw = (data as { glasses?: unknown } | null)?.glasses
-  const list = Array.isArray(raw) ? raw : typeof raw === "string" && raw ? raw.split(",") : []
-  const glasses = list
-    .filter((e): e is string => typeof e === "string" && !Number.isNaN(Date.parse(e)))
-    .slice(-MAX_GLASSES_PER_DAY)
-  return { glasses }
+  return { glasses: readTimestampField(data, "glasses", MAX_GLASSES_PER_DAY) }
 }
 
 export function loadWasserToday(now = new Date()): WasserDay {
@@ -32,7 +28,7 @@ export function loadWasserToday(now = new Date()): WasserDay {
 }
 
 export function saveWasserToday(day: WasserDay, now = new Date()): void {
-  safeSetItem(dayKey(now), { version: VERSION, data: { glasses: sanitizeWasserDay(day).glasses.join(",") } })
+  safeSetItem(dayKey(now), { version: VERSION, data: { glasses: sanitizeWasserDay(day).glasses } })
 }
 
 export function addWasserGlass(now = new Date()): WasserDay {

@@ -153,6 +153,24 @@ test('coffee events are logged, persisted and undoable', async ({ page }) => {
   await expect(page.getByText('1 / 10 cups')).toBeVisible()
 })
 
+test('customize tab edits questions that show up on check-in', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('tab', { name: /Ziggy/ }).click()
+  await expect(page.getByTestId('questionnaire-editor')).toHaveCount(0)
+
+  await page.getByRole('tab', { name: /Customize/ }).click()
+  await expect(page.getByRole('heading', { name: 'Customize questions' })).toBeVisible()
+  await page.getByLabel('Question').fill('Rain check')
+  await page.getByLabel('Type').click()
+  await page.getByRole('option', { name: 'Short text' }).click()
+  await page.getByRole('button', { name: 'Add question' }).click()
+  await expect(page.getByLabel('text (custom)')).toHaveValue('Rain check')
+
+  await page.getByRole('tab', { name: /Morning Check-In/ }).click()
+  await expect(page.getByRole('textbox', { name: 'Rain check' })).toBeVisible()
+  await expect(page.getByTestId('questionnaire-editor')).toHaveCount(0)
+})
+
 test('ziggy meter reads today\'s check-in', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('tab', { name: /Ziggy/ }).click()
