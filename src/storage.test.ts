@@ -98,7 +98,7 @@ describe('storage', () => {
       },
     })
     expect(importAll(json)).toBe(1)
-    expect(loadWasserToday(new Date('2025-06-01T12:00:00Z')).glasses).toEqual([
+    expect(loadWasserToday(new Date('2025-06-01T12:00:00')).glasses).toEqual([
       '2025-06-01T08:00:00.000Z',
       '2025-06-01T09:00:00.000Z',
     ])

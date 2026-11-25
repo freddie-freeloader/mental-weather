@@ -46,7 +46,7 @@ describe('coffee events', () => {
   })
 
   it('stores an array and still reads the legacy comma-joined string', () => {
-    const when = new Date('2025-04-01T08:00:00Z')
+    const when = new Date('2025-04-01T08:00:00')
     addCoffeeEvent(when)
     const raw = localStorage.getItem('mental-weather:coffee_2025-04-01')
     expect(raw).toBeTruthy()
@@ -57,7 +57,7 @@ describe('coffee events', () => {
       'mental-weather:coffee_2025-04-02',
       JSON.stringify({ version: '1.0.0', data: { events: '2025-04-02T08:00:00.000Z,2025-04-02T09:00:00.000Z' } }),
     )
-    expect(loadCoffeeToday(new Date('2025-04-02T12:00:00Z')).events).toEqual([
+    expect(loadCoffeeToday(new Date('2025-04-02T12:00:00')).events).toEqual([
       '2025-04-02T08:00:00.000Z',
       '2025-04-02T09:00:00.000Z',
     ])
