@@ -1,4 +1,5 @@
 import { safeGetItem, safeSetItem, validateVersionedData } from "./security"
+import { readTimestampField } from "./timestamps"
 
 const VERSION = "1.0.0"
 const MAX_EVENTS_PER_DAY = 50
@@ -13,13 +14,7 @@ function dayKey(date: Date): string {
 }
 
 export function sanitizeCoffeeDay(data: unknown): CoffeeDay {
-  const raw = (data as { events?: unknown } | null)?.events
-  // stored as a comma-joined string because the storage sanitizer turns arrays into objects
-  const list = Array.isArray(raw) ? raw : typeof raw === "string" && raw ? raw.split(",") : []
-  const events = list
-    .filter((e): e is string => typeof e === "string" && !Number.isNaN(Date.parse(e)))
-    .slice(-MAX_EVENTS_PER_DAY)
-  return { events }
+  return { events: readTimestampField(data, "events", MAX_EVENTS_PER_DAY) }
 }
 
 export function loadCoffeeToday(now = new Date()): CoffeeDay {
@@ -33,7 +28,7 @@ export function loadCoffeeToday(now = new Date()): CoffeeDay {
 }
 
 export function saveCoffeeToday(day: CoffeeDay, now = new Date()): void {
-  safeSetItem(dayKey(now), { version: VERSION, data: { events: sanitizeCoffeeDay(day).events.join(",") } })
+  safeSetItem(dayKey(now), { version: VERSION, data: { events: sanitizeCoffeeDay(day).events } })
 }
 
 export function addCoffeeEvent(now = new Date()): CoffeeDay {

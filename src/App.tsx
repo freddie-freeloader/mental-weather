@@ -228,7 +228,7 @@ export default function App() {
             <ZiggyStardustOMeter />
           </TabPanel>
 
-          <TabPanel value={currentTab} index={6}>
+          <TabPanel value={currentTab} index={7}>
             <Suspense fallback={null}>
               <QuestionnaireEditor />
             </Suspense>

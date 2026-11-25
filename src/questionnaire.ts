@@ -122,8 +122,11 @@ export function loadQuestionnaire(): Questionnaire {
   }
 }
 
+export const QUESTIONNAIRE_CHANGED_EVENT = "mental-weather:questionnaire-changed"
+
 export function saveQuestionnaire(q: Questionnaire): void {
   localStorage.setItem(QUESTIONNAIRE_KEY, JSON.stringify(q))
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(QUESTIONNAIRE_CHANGED_EVENT))
 }
 
 export function visibleQuestions(list: Question[]): Question[] {

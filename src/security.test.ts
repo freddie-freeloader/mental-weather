@@ -98,42 +98,52 @@ describe('Security Utilities', () => {
   })
 
   describe('sanitizeObject', () => {
-    it('should sanitize all string values', () => {
-      const input = { name: '<script>test</script>' }
-      const result = sanitizeObject(input)
-      expect(result.name).not.toContain('<script>')
-      expect(result.name).toContain('test')
+    it('keeps user text exactly, including markup characters', () => {
+      expect(sanitizeObject({ name: '<script>test</script>', note: 'tired & wired' })).toEqual({
+        name: '<script>test</script>',
+        note: 'tired & wired',
+      })
     })
 
     it('should preserve valid number values', () => {
-      const input = { value: 1000 }
-      const result = sanitizeObject(input)
-      expect(result.value).toBe(1000)
+      expect(sanitizeObject({ value: 1000 })).toEqual({ value: 1000 })
+    })
+
+    it('should preserve arrays instead of turning them into objects', () => {
+      expect(sanitizeObject({ events: ['a', 'b'] })).toEqual({ events: ['a', 'b'] })
+      expect(sanitizeObject(['<ok>', 'tired & wired'])).toEqual(['<ok>', 'tired & wired'])
     })
 
     it('should handle nested objects', () => {
-      const input = { 
-        user: { 
-          name: '<script>test</script>',
-          age: 150 
-        } 
-      }
-      const result = sanitizeObject(input)
-      expect((result.user as Record<string, unknown>).name).not.toContain('<script>')
-      expect((result.user as Record<string, unknown>).age).toBe(150)
+      expect(sanitizeObject({
+        user: {
+          name: 'I felt <angry> today',
+          age: 150,
+        },
+      })).toEqual({
+        user: {
+          name: 'I felt <angry> today',
+          age: 150,
+        },
+      })
+    })
+
+    it('drops prototype-pollution keys', () => {
+      const input: unknown = JSON.parse('{"name":"ok","__proto__":{"admin":true},"constructor":{"x":1},"prototype":{"y":2},"user":{"__proto__":{"admin":true},"name":"a"}}')
+      expect(sanitizeObject(input)).toEqual({ name: 'ok', user: { name: 'a' } })
+      expect(Object.prototype).not.toHaveProperty('admin')
     })
 
     it('should preserve null and undefined', () => {
-      const input = { a: null, b: undefined }
-      const result = sanitizeObject(input)
-      expect(result.a).toBe(null)
-      expect(result.b).toBe(null)
+      expect(sanitizeObject({ a: null, b: undefined })).toEqual({ a: null, b: null })
     })
 
     it('should preserve booleans', () => {
-      const input = { flag: true }
-      const result = sanitizeObject(input)
-      expect(result.flag).toBe(true)
+      expect(sanitizeObject({ flag: true })).toEqual({ flag: true })
+    })
+
+    it('drops non-finite numbers', () => {
+      expect(sanitizeObject({ mood: Infinity, energy: Number.NaN })).toEqual({ mood: null, energy: null })
     })
   })
 
