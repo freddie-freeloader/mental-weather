@@ -14,6 +14,7 @@ function formatDate(date: string): string {
 }
 
 function BackupControls({ onImported }: { onImported: () => void }) {
+  const { reload } = useArchetypeSet()
   const input = useRef<HTMLInputElement>(null)
   const [msg, setMsg] = useState<{ severity: "success" | "error"; text: string } | null>(null)
 
@@ -30,6 +31,7 @@ function BackupControls({ onImported }: { onImported: () => void }) {
   const upload = async (file: File) => {
     try {
       const n = importAll(await file.text())
+      reload()
       setMsg({ severity: "success", text: `Imported ${n} entries` })
       onImported()
     } catch (error) {

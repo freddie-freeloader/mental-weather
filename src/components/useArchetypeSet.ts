@@ -6,6 +6,8 @@ export interface ArchetypeSetContextValue {
   set: ArchetypeSet
   sets: readonly ArchetypeSet[]
   choose: (id: ArchetypeSetId) => void
+  /** Re-read the set from storage. Import replaces settings without remounting the app. */
+  reload: () => void
 }
 
 export const ArchetypeSetContext = createContext<ArchetypeSetContextValue | null>(null)

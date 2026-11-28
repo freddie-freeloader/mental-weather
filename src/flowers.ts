@@ -33,7 +33,7 @@ const FLOWER_PRESENTATIONS: Readonly<Record<string, ArchetypePresentation>> = {
     emoji: "🌼",
     description: "Daisies are light and playful. They open easily, enjoy company, and share a simple kind of joy.",
     message: "Today you are a Daisy - light, playful, and glad to be with others. Your joy is easy to share and safe to trust. Let the day be bright without having to earn it. 🌼",
-    color: "#C48A1A",
+    color: "#8A5A00",
     bgColor: "linear-gradient(135deg, #FFFDE7, #FFF9C4)",
   },
   Rabbit: {

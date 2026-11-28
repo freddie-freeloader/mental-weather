@@ -219,6 +219,32 @@ test('coffee events are logged, persisted and undoable', async ({ page }) => {
   await expect(page.getByText('1 / 10 cups')).toBeVisible()
 })
 
+test('importing a backup updates the archetype set without a reload', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText('🌸 Discover your animal archetype today! 🌸')).toBeVisible()
+  await page.getByRole('tab', { name: /History/ }).click()
+
+  const file = (name: string, settings: { medicationName: string; archetypeSet?: string }) => ({
+    name,
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ app: 'mental-weather', entries: {}, settings })),
+  })
+
+  await page.getByTestId('import-input').setInputFiles(
+    file('flowers.json', { medicationName: 'Promethazine', archetypeSet: 'flowers' }),
+  )
+  await expect(page.getByText('Imported 0 entries')).toBeVisible()
+  await expect(page.getByText('🌸 Discover your flower archetype today! 🌸')).toBeVisible()
+  await page.getByRole('tab', { name: /My Flower/ }).click()
+  await expect(page.getByRole('button', { name: "Ophelia's Flowers" })).toHaveAttribute('aria-pressed', 'true')
+
+  await page.getByRole('tab', { name: /History/ }).click()
+  await page.getByTestId('import-input').setInputFiles(file('legacy.json', { medicationName: 'Promethazine' }))
+  await expect(page.getByText('🌸 Discover your animal archetype today! 🌸')).toBeVisible()
+  await page.getByRole('tab', { name: /My Animal/ }).click()
+  await expect(page.getByTestId('archetype-set').getByRole('button', { name: 'Animals' })).toHaveAttribute('aria-pressed', 'true')
+})
+
 test('ziggy meter reads today\'s check-in', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('tab', { name: /Ziggy/ }).click()

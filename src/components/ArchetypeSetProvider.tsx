@@ -10,7 +10,13 @@ export function ArchetypeSetProvider({ children }: { children: ReactNode }) {
     saveSettings({ archetypeSet: id })
     setSetId(id)
   }, [])
+  const reload = useCallback(() => {
+    setSetId(loadSettings().archetypeSet)
+  }, [])
   const set = getArchetypeSet(setId)
-  const value = useMemo(() => ({ setId, set, sets: archetypeSetList, choose }), [setId, set, choose])
+  const value = useMemo(
+    () => ({ setId, set, sets: archetypeSetList, choose, reload }),
+    [setId, set, choose, reload],
+  )
   return <ArchetypeSetContext.Provider value={value}>{children}</ArchetypeSetContext.Provider>
 }
