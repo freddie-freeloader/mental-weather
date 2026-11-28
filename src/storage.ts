@@ -1,4 +1,5 @@
 import { loadQuestionnaire, sanitizeQuestionnaire, saveQuestionnaire } from "./questionnaire"
+import { DEFAULT_ARCHETYPE_SET_ID, isArchetypeSetId, type ArchetypeSetId } from "./archetypes"
 const VERSION = "1.0.0"
 const PREFIX = "mental-weather"
 
@@ -114,27 +115,55 @@ export function saveToday<T>(kind: CheckInKind, data: T): void {
 
 export interface Settings {
   medicationName: string
+  archetypeSet: ArchetypeSetId
 }
 
-export const DEFAULT_SETTINGS: Settings = { medicationName: "Promethazine" }
+export const DEFAULT_SETTINGS: Settings = {
+  medicationName: "Promethazine",
+  archetypeSet: DEFAULT_ARCHETYPE_SET_ID,
+}
 
 const SETTINGS_KEY = `${PREFIX}:settings`
 export const QUESTIONNAIRE_KEY = `${PREFIX}:questionnaire`
 
-export function loadSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY)
-    if (!raw) return DEFAULT_SETTINGS
-    const data = (JSON.parse(raw) as Versioned<Partial<Settings>>).data
-    return { ...DEFAULT_SETTINGS, ...data }
-  } catch (error) {
-    console.error("Failed to load settings", error)
-    return DEFAULT_SETTINGS
+function readSettings(raw: string): Partial<Settings> {
+  const parsed: unknown = JSON.parse(raw)
+  if (typeof parsed !== "object" || parsed === null || !("data" in parsed)) return {}
+  const data: unknown = parsed.data
+  if (typeof data !== "object" || data === null) return {}
+  const out: Partial<Settings> = {}
+  if ("medicationName" in data && typeof data.medicationName === "string") {
+    out.medicationName = data.medicationName
+  }
+  if ("archetypeSet" in data && isArchetypeSetId(data.archetypeSet)) {
+    out.archetypeSet = data.archetypeSet
+  }
+  return out
+}
+
+function normalizeSettings(data: Partial<Settings>): Settings {
+  return {
+    medicationName: typeof data.medicationName === "string" ? data.medicationName : DEFAULT_SETTINGS.medicationName,
+    archetypeSet: isArchetypeSetId(data.archetypeSet) ? data.archetypeSet : DEFAULT_SETTINGS.archetypeSet,
   }
 }
 
-export function saveSettings(settings: Settings): void {
-  const payload: Versioned<Settings> = { version: VERSION, data: settings }
+export function loadSettings(): Settings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY)
+    if (!raw) return { ...DEFAULT_SETTINGS }
+    return normalizeSettings(readSettings(raw))
+  } catch (error) {
+    console.error("Failed to load settings", error)
+    return { ...DEFAULT_SETTINGS }
+  }
+}
+
+export function saveSettings(patch: Partial<Settings>): void {
+  const payload: Versioned<Settings> = {
+    version: VERSION,
+    data: normalizeSettings({ ...loadSettings(), ...patch }),
+  }
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload))
 }
 

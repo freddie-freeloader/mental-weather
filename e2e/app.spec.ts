@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { analyzeSet, getArchetypeSet } from '../src/archetypes'
+
+const SAMPLE = { averageMood: 4, averageEnergy: 4, selfWorth: 4 }
+const SAMPLE_ANIMAL = analyzeSet(SAMPLE, getArchetypeSet('animals')).archetype.name
+const SAMPLE_FLOWER = analyzeSet(SAMPLE, getArchetypeSet('flowers')).archetype.name
 
 test('loads and switches tabs', async ({ page }) => {
   await page.goto('/')
@@ -121,6 +126,67 @@ test('saved evening result shows on My Animal after reload and in History', asyn
   await expect(page.getByTestId('animal-card')).toContainText('Your Animal Archetype Today')
   await page.getByRole('tab', { name: /History/ }).click()
   await expect(page.getByTestId('history-item')).toHaveCount(1)
+})
+
+test('switching archetype set updates labels, the card, and history', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 })
+  await page.addInitScript((sample) => {
+    const entry = { version: '1.0.0', data: sample }
+    localStorage.setItem('mental-weather:evening_2025-06-01', JSON.stringify(entry))
+  }, SAMPLE)
+  await page.goto('/')
+  await expect(page.getByText('🌸 Discover your animal archetype today! 🌸')).toBeVisible()
+
+  await page.getByRole('tab', { name: /My Animal/ }).click()
+  const card = page.getByTestId('animal-card')
+  const setPicker = page.getByTestId('archetype-set')
+  await expect(setPicker.getByRole('button', { name: 'Animals' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(card).toContainText('hatch it')
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  )
+  expect(overflow).toBeLessThanOrEqual(0)
+
+  await setPicker.getByRole('button', { name: "Ophelia's Flowers" }).click()
+  await expect(page.getByText('🌸 Discover your flower archetype today! 🌸')).toBeVisible()
+  await expect(page.getByRole('tab', { name: /My Flower/ })).toHaveAttribute('aria-selected', 'true')
+  await expect(card).toContainText('see it bloom')
+  await expect(card).not.toContainText('hatch it')
+  await expect(page.getByTestId('preview-toggle')).toContainText('Preview all flowers')
+
+  await page.getByTestId('preview-toggle').click()
+  await expect(card).toContainText('Your Flower Archetype Today')
+  await expect(card.getByRole('heading', { level: 3 })).toHaveText(getArchetypeSet('flowers').items[0].name)
+  await page.getByTestId('preview-toggle').click()
+
+  await page.getByRole('tab', { name: /History/ }).click()
+  await expect(page.getByTestId('history-item')).toContainText(SAMPLE_FLOWER)
+  await expect(page.getByTestId('history-item')).not.toContainText(SAMPLE_ANIMAL)
+
+  await page.reload()
+  await expect(page.getByText('🌸 Discover your flower archetype today! 🌸')).toBeVisible()
+  await page.getByRole('tab', { name: /My Flower/ }).click()
+  await expect(page.getByTestId('archetype-set').getByRole('button', { name: "Ophelia's Flowers" })).toHaveAttribute('aria-pressed', 'true')
+
+  await page.getByRole('tab', { name: /Evening Check-In/ }).click()
+  await page.getByRole('button', { name: /Submit Evening Check-In/ }).click()
+  await expect(page.getByRole('tab', { name: /My Flower/ })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByTestId('animal-card')).toContainText('Your Flower Archetype Today')
+
+  await page.getByTestId('archetype-set').getByRole('button', { name: 'Animals' }).click()
+  await expect(page.getByRole('tab', { name: /My Animal/ })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByTestId('animal-card')).toContainText('Your Animal Archetype Today')
+  await expect(page.getByTestId('animal-card').getByRole('heading', { level: 3 })).not.toHaveText(SAMPLE_FLOWER)
+
+  await page.getByRole('tab', { name: /History/ }).click()
+  const past = page.getByTestId('history-item').filter({ hasText: 'Jun 1' })
+  await expect(past).toContainText(SAMPLE_ANIMAL)
+  await expect(past).not.toContainText(SAMPLE_FLOWER)
+
+  await page.reload()
+  await expect(page.getByText('🌸 Discover your animal archetype today! 🌸')).toBeVisible()
+  await page.getByRole('tab', { name: /History/ }).click()
+  await expect(page.getByTestId('history-item').filter({ hasText: 'Jun 1' })).toContainText(SAMPLE_ANIMAL)
 })
 
 test('works when served from a sub-path (GitHub Pages)', async ({ page }) => {

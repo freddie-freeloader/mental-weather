@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { exportAll, importAll, listDays, loadToday, saveToday } from './storage'
+import { exportAll, importAll, listDays, loadSettings, loadToday, saveSettings, saveToday } from './storage'
 
 beforeEach(() => localStorage.clear())
 
@@ -43,6 +43,41 @@ describe('storage', () => {
     localStorage.setItem('mental-weather:evening_2025-01-01', '{bad')
     expect(listDays('evening')).toEqual([])
     spy.mockRestore()
+  })
+
+  it('defaults the archetype set to animals for existing settings', () => {
+    expect(loadSettings()).toEqual({ medicationName: 'Promethazine', archetypeSet: 'animals' })
+    localStorage.setItem('mental-weather:settings', JSON.stringify({ version: '1.0.0', data: { medicationName: 'Lithium' } }))
+    expect(loadSettings()).toEqual({ medicationName: 'Lithium', archetypeSet: 'animals' })
+  })
+
+  it('persists the archetype set and keeps it when medication is saved', () => {
+    saveSettings({ archetypeSet: 'flowers' })
+    expect(loadSettings().archetypeSet).toBe('flowers')
+    saveSettings({ medicationName: 'Lithium' })
+    expect(loadSettings()).toEqual({ medicationName: 'Lithium', archetypeSet: 'flowers' })
+  })
+
+  it('falls back when the stored archetype set is unknown', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    localStorage.setItem(
+      'mental-weather:settings',
+      JSON.stringify({ version: '1.0.0', data: { medicationName: 'Lithium', archetypeSet: 'dragons' } }),
+    )
+    expect(loadSettings()).toEqual({ medicationName: 'Lithium', archetypeSet: 'animals' })
+    localStorage.setItem('mental-weather:settings', '{nope')
+    expect(loadSettings().archetypeSet).toBe('animals')
+    spy.mockRestore()
+  })
+
+  it('round-trips the archetype set through a backup', () => {
+    saveSettings({ medicationName: 'Lithium', archetypeSet: 'flowers' })
+    const json = JSON.stringify(exportAll())
+    localStorage.clear()
+    expect(importAll(json)).toBe(0)
+    expect(loadSettings()).toEqual({ medicationName: 'Lithium', archetypeSet: 'flowers' })
+    importAll(JSON.stringify({ app: 'mental-weather', entries: {}, settings: { medicationName: 'Lithium', archetypeSet: 'dragons' } }))
+    expect(loadSettings()).toEqual({ medicationName: 'Lithium', archetypeSet: 'animals' })
   })
 
   it('round-trips a backup and rejects foreign files', () => {

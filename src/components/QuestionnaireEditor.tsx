@@ -24,10 +24,13 @@ import {
   type Questionnaire,
 } from "../questionnaire"
 import type { CheckInKind } from "../storage"
+import { archetypeCopy } from "../archetypes"
+import { useArchetypeSet } from "./useArchetypeSet"
 
 const NUM = (v: string): number | undefined => (v.trim() === "" || Number.isNaN(Number(v)) ? undefined : Number(v))
 
 export default function QuestionnaireEditor() {
+  const { set } = useArchetypeSet()
   const [q, setQ] = useState<Questionnaire>(loadQuestionnaire)
   const [kind, setKind] = useState<CheckInKind>("morning")
   const [draft, setDraft] = useState<{ label: string; section: string; type: QuestionType; min: string; max: string; step: string }>({
@@ -85,7 +88,7 @@ export default function QuestionnaireEditor() {
     <Box data-testid="questionnaire-editor" sx={{ display: "grid", gap: 2 }}>
       <Typography variant="h4">Customize questions</Typography>
       <Alert severity="info">
-        Hidden questions keep their saved answers. Animal archetypes use the built-in evening questions; hiding them counts as 0.
+        Hidden questions keep their saved answers. {archetypeCopy(set).editorNote}
       </Alert>
       <ToggleButtonGroup exclusive value={kind} onChange={(_, v: CheckInKind | null) => v && setKind(v)}>
         <ToggleButton value="morning">Morning</ToggleButton>
