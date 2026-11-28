@@ -2,6 +2,7 @@
   "name": "frontend",
   "private": true,
   "version": "0.0.0",
+  "description": "Ophelia's Pansies is a quiet check-in for thoughts and feelings, a sister to Ophelia's Rosemaries.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +16,8 @@
     "@base-ui/react": "^1.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@fontsource/roboto": "^5.2.9",
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/outfit": "^5.3.0",
     "@mui/icons-material": "^9.5.0",
     "@mui/material": "^9.5.0",
     "@tanstack/react-form": "^1.27.7",

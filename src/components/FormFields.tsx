@@ -1,4 +1,6 @@
+import { useId } from "react"
 import { TextField, Slider, Button, Box, Typography, CircularProgress } from "@mui/material"
+import { PansyMark } from "./PansyMark"
 import type { FieldApi } from "@tanstack/react-form"
 import MuiNumberField from "./MuiNumberField"
 
@@ -109,26 +111,34 @@ export function SliderFieldComponent({
 }: SliderFieldComponentProps) {
   const hasErrors = field.state.meta.errors.length > 0
   const isTouched = field.state.meta.isTouched
+  const inputId = useId()
+  const labelId = `${inputId}-label`
 
   return (
     <Box sx={{
       width: "100%",
       mt: 3,
       mb: 2,
-      py: 2  // Add vertical padding to increase scroll area
+      py: 2
     }}>
-      <Typography gutterBottom>
+      <Typography id={labelId} component="label" htmlFor={inputId} gutterBottom>
         {label} {required && "*"}: {field.state.value}
       </Typography>
-      {/* Wrapper to control touch behavior */}
       <Box sx={{
-        px: 2,  // Add horizontal padding to reduce accidental touches
-        touchAction: "pan-y"  // Prioritize vertical scrolling over slider interaction
+        px: 2,
+        touchAction: "pan-y"
       }}>
         <Slider
+          slotProps={{
+            input: {
+              id: inputId,
+              "aria-labelledby": labelId,
+            },
+          }}
           value={field.state.value}
           onChange={(_, value) => {
-            field.handleChange(value as number)
+            const next = Array.isArray(value) ? value[0] : value
+            if (typeof next === "number") field.handleChange(next)
           }}
           onBlur={field.handleBlur}
           min={min}
@@ -136,9 +146,7 @@ export function SliderFieldComponent({
           step={step}
           marks={marks}
           valueLabelDisplay="auto"
-          sx={{
-            color: hasErrors && isTouched ? "error.main" : "primary.main",
-          }}
+          color={hasErrors && isTouched ? "error" : "primary"}
         />
       </Box>
       {hasErrors && isTouched && (
@@ -200,19 +208,21 @@ export function SubmitButtonComponent({
   children,
   isSubmitting = false,
   canSubmit = true,
-  variant = "contained",
   color = "primary"
 }: SubmitButtonComponentProps) {
   return (
     <Button
       type="submit"
-      variant={variant}
+      variant="text"
       color={color}
+      className="seal-button"
       disabled={isSubmitting || !canSubmit}
-      fullWidth
       sx={{ mt: 2, mb: 2 }}
     >
-      {isSubmitting ? <CircularProgress size={24} /> : children}
+      <span className="seal-wax" aria-hidden="true">
+        {isSubmitting ? <CircularProgress size={28} sx={{ color: "var(--color-on-wax)" }} /> : <PansyMark className="pansy pansy-on-wax" />}
+      </span>
+      <span className="seal-caption">{children}</span>
     </Button>
   )
 }

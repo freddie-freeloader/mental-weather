@@ -1,5 +1,5 @@
 /**
- * Security utilities for Ophelia's Mental Weather Log
+ * Security utilities for Ophelia's Pansies
  * A++ Security: Local-first, client-side only
  */
 
@@ -316,7 +316,7 @@ export function isSecureContext(): boolean {
 export function checkSecureContext(): void {
   if (!isSecureContext()) {
     console.warn(
-      '[SECURITY] Ophelia\'s Mental Weather Log is running in an insecure context. ' +
+      '[SECURITY] Ophelia\'s Pansies is running in an insecure context. ' +
       'For maximum security, use HTTPS or localhost.'
     )
   }
@@ -340,5 +340,5 @@ export function initSecurity(): void {
   }
   
   // Log security version
-  console.log(`[SECURITY] Ophelia's Mental Weather Log - Security Level: ${SECURITY_VERSION}`)
+  console.log(`[SECURITY] Ophelia's Pansies - Security Level: ${SECURITY_VERSION}`)
 }

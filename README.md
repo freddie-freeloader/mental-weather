@@ -1,6 +1,8 @@
-# Ophelia's Mental Weather Log
+# Ophelia's Pansies
 
-Local-first single-page app for tracking daily mental health metrics (sleep, mood, energy, social).
+Ophelia's Pansies is a quiet check-in for thoughts and feelings. Pansies, that's for thoughts: a morning note, an evening note, and a likeness for the day.
+
+It is a sister to [Ophelia's Rosemaries](https://github.com/freddie-freeloader/hedwig), the letter desk. This repository stays named `mental-weather`. Check-ins still live in the browser under `mental-weather:` keys, and backups still use `"app": "mental-weather"`.
 
 - No backend, no network needed
 - Data stays in the browser (`localStorage`), one entry per check-in per day
@@ -8,7 +10,8 @@ Local-first single-page app for tracking daily mental health metrics (sleep, moo
 
 ## Structure
 
-- `src/App.tsx`: tab navigation
+- `src/App.tsx`: welcome, theme, and section navigation
+- `src/theme.ts`: sage, wax, and paper palette shared with Rosemaries
 - `src/components/`: morning / evening check-in forms, animal archetype display, shared fields
 - `src/storage.ts`: `localStorage` persistence
 - Customize tab: rename, hide, reorder, add or delete questions (stored in `localStorage`, included in backups)

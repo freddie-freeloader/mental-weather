@@ -1,258 +1,196 @@
-import { lazy, Suspense, useState } from 'react';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { Container, Typography, Tabs, Tab, Box, Paper, styled } from '@mui/material';
-import MorningCheckIn from './components/MorningCheckIn';
-import EveningCheckIn from './components/EveningCheckIn';
-const History = lazy(() => import('./components/History'));
-const QuestionnaireEditor = lazy(() => import('./components/QuestionnaireEditor'));
-import ZiggyStardustOMeter from './components/ZiggyStardustOMeter';
-import CoffeeTab from './components/CoffeeTab';
-import WasserTab from './components/WasserTab';
-import AnimalDisplay from './components/AnimalDisplay';
-import { ArchetypeSetProvider } from './components/ArchetypeSetProvider';
-import { useArchetypeSet } from './components/useArchetypeSet';
-import { archetypeCopy } from './archetypes';
-import kawaiiTheme from './theme';
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react"
+import { ThemeProvider } from "@mui/material/styles"
+import CssBaseline from "@mui/material/CssBaseline"
+import { Box } from "@mui/material"
+import MorningCheckIn from "./components/MorningCheckIn"
+import EveningCheckIn from "./components/EveningCheckIn"
+import ZiggyStardustOMeter from "./components/ZiggyStardustOMeter"
+import CoffeeTab from "./components/CoffeeTab"
+import WasserTab from "./components/WasserTab"
+import AnimalDisplay from "./components/AnimalDisplay"
+import SectionNav from "./components/SectionNav"
+import Welcome from "./components/Welcome"
+import { PansyMark } from "./components/PansyMark"
+import { ArchetypeSetProvider } from "./components/ArchetypeSetProvider"
+import { useArchetypeSet } from "./components/useArchetypeSet"
+import { archetypeCopy } from "./archetypes"
+import { createPansiesTheme } from "./theme"
+import { THEME_KEY, WELCOME_KEY, applyInkMode, readInkMode, type InkMode } from "./branding"
 
-// Custom styled components for kawaii look
-const KawaiiContainer = styled(Container)(() => ({
-  background: 'linear-gradient(135deg, #FFF8F0 0%, #FFE4F5 50%, #E0F7FA 100%)',
-  minHeight: '100vh',
-  paddingTop: '8px',
-  paddingBottom: '24px',
-  borderRadius: '0',
-  position: 'relative',
-  overflow: 'hidden',
-}));
+const History = lazy(() => import("./components/History"))
+const QuestionnaireEditor = lazy(() => import("./components/QuestionnaireEditor"))
 
-const TitleBox = styled(Paper)(() => ({
-  background: 'linear-gradient(135deg, #FFF0F5, #FFE4E9)',
-  border: '3px solid #FFB6C1',
-  borderRadius: '24px',
-  padding: 'clamp(12px, 4vw, 24px)',
-  marginBottom: '16px',
-  boxShadow: '0 8px 24px rgba(255, 182, 193, 0.3)',
-  textAlign: 'center',
-  textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-}));
-
-const TabsContainer = styled(Paper)(() => ({
-  background: 'rgba(255, 255, 255, 0.6)',
-  borderRadius: '20px',
-  padding: '8px',
-  marginBottom: '12px',
-  boxShadow: '0 4px 12px rgba(255, 182, 193, 0.2)',
-  backdropFilter: 'blur(10px)',
-  border: '1px solid #FFE4E9',
-}));
-
-const TabPanelWrapper = styled(Box)(() => ({
-  background: 'rgba(255, 255, 255, 0.4)',
-  borderRadius: '20px',
-  padding: 'clamp(8px, 3vw, 20px)',
-  boxShadow: '0 2px 8px rgba(255, 182, 193, 0.1)',
-  backdropFilter: 'blur(10px)',
-  border: '1px solid #FFF0F5',
-}));
-
-// Custom theme with kawaii fonts
-const customKawaiiTheme = {
-  ...kawaiiTheme,
-  typography: {
-    ...kawaiiTheme.typography,
-    fontFamily: ['"Comic Sans MS"', '"KaiTi"', 'cursive', 'sans-serif'].join(','),
-  },
-};
-
-// Floating decoration elements
-const CloudDecoration = styled('div')({
-  position: 'fixed',
-  opacity: 0.15,
-  pointerEvents: 'none',
-  zIndex: 0,
-  fontSize: 'clamp(3rem, 12vw, 8rem)',
-  userSelect: 'none',
-});
-
-const TAB_ANIMAL = 2;
+const TAB_ANIMAL = 2
 
 function tabLabels(archetypeTab: string): string[] {
   return [
-    '🌅 Morning Check-In',
-    '🌙 Evening Check-In',
+    "Morning Check-In",
+    "Evening Check-In",
     archetypeTab,
-    '📖 History',
-    '☕ Coffee',
-    '💦 Wasser',
-    '⚡ Ziggy',
-    '⚙️ Customize',
-  ];
+    "History",
+    "Coffee",
+    "Wasser",
+    "Ziggy",
+    "Customize",
+  ]
+}
+
+function greeting(now: Date): string {
+  const hour = now.getHours()
+  if (hour < 12) return "Good morning"
+  if (hour < 17) return "Good afternoon"
+  return "Good evening"
+}
+
+function todayLabel(now: Date): string {
+  return now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })
 }
 
 interface TabPanelProps {
-  children: React.ReactNode;
-  value: number;
-  index: number;
+  children: ReactNode
+  value: number
+  index: number
 }
 
 function TabPanel({ children, value, index }: TabPanelProps) {
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tabpanel-${index}`}
-      aria-labelledby={`tab-${index}`}
-    >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    <div role="tabpanel" hidden={value !== index} id={`tabpanel-${index}`} aria-labelledby={`tab-${index}`}>
+      {value === index && <Box sx={{ pt: 1 }}>{children}</Box>}
     </div>
-  );
+  )
 }
 
 export default function App() {
+  const [mode, setMode] = useState<InkMode>(readInkMode)
+  const theme = useMemo(() => createPansiesTheme(mode), [mode])
+
+  useEffect(() => {
+    applyInkMode(mode)
+    try {
+      localStorage.setItem(THEME_KEY, mode)
+    } catch {
+      return
+    }
+  }, [mode])
+
   return (
-    <ThemeProvider theme={customKawaiiTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <ArchetypeSetProvider>
-        <WeatherLog />
+        <WeatherLog mode={mode} onToggleTheme={() => setMode((current) => (current === "dark" ? "light" : "dark"))} />
       </ArchetypeSetProvider>
     </ThemeProvider>
-  );
+  )
 }
 
-function WeatherLog() {
-  const { set } = useArchetypeSet();
-  const copy = archetypeCopy(set);
-  const tabs = tabLabels(copy.tabLabel);
-  // mornings start on the morning form, afternoons on the evening one
-  const [currentTab, setCurrentTab] = useState(() => (new Date().getHours() >= 16 ? 1 : 0));
-  const [analysisKey, setAnalysisKey] = useState(0);
+function WeatherLog({ mode, onToggleTheme }: { mode: InkMode; onToggleTheme: () => void }) {
+  const { set } = useArchetypeSet()
+  const copy = archetypeCopy(set)
+  const tabs = tabLabels(copy.tabLabel)
+  const [currentTab, setCurrentTab] = useState(() => (new Date().getHours() >= 16 ? 1 : 0))
+  const [analysisKey, setAnalysisKey] = useState(0)
+  const [welcomed, setWelcomed] = useState(() => {
+    try {
+      return localStorage.getItem(WELCOME_KEY) === "1"
+    } catch {
+      return false
+    }
+  })
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const refresh = () => setNow(new Date())
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh()
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    const timer = window.setInterval(refresh, 60_000)
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible)
+      window.clearInterval(timer)
+    }
+  }, [])
+
+  const begin = () => {
+    try {
+      localStorage.setItem(WELCOME_KEY, "1")
+    } catch {
+      // The check-in still opens for this visit.
+    }
+    setWelcomed(true)
+  }
+
+  const goHome = () => {
+    begin()
+    setCurrentTab(0)
+    window.scrollTo({ top: 0 })
+  }
 
   const handleEveningSaved = () => {
-    setAnalysisKey((k) => k + 1);
-    setCurrentTab(TAB_ANIMAL);
-    window.scrollTo({ top: 0 });
-  };
-
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setCurrentTab(newValue);
-  };
+    setAnalysisKey((k) => k + 1)
+    setCurrentTab(TAB_ANIMAL)
+    window.scrollTo({ top: 0 })
+  }
 
   return (
-    <>
-      {/* Floating decorations */}
-      <CloudDecoration style={{ top: '20%', left: '5%', transform: 'scale(0.8)' }}>☁️</CloudDecoration>
-      <CloudDecoration style={{ top: '15%', right: '8%', transform: 'scale(1.2)' }}>☁️</CloudDecoration>
-      <CloudDecoration style={{ bottom: '30%', left: '10%', transform: 'scale(0.6)' }}>🌸</CloudDecoration>
-      <CloudDecoration style={{ bottom: '20%', right: '5%', transform: 'scale(0.9)' }}>✨</CloudDecoration>
-      <CloudDecoration style={{ top: '50%', left: '2%', transform: 'scale(0.5)' }}>💖</CloudDecoration>
-      <CloudDecoration style={{ top: '60%', right: '2%', transform: 'scale(0.5)' }}>🌈</CloudDecoration>
-      
-      <KawaiiContainer maxWidth="md" sx={{ px: { xs: 1, sm: 3 } }}>
-        <TitleBox elevation={3}>
-          <Typography 
-            variant="h2" 
-            sx={{
-              fontWeight: 800,
-              color: '#FF69B4',
-              textShadow: '2px 2px 4px rgba(255, 105, 180, 0.2)',
-              fontSize: { xs: '1.7rem', sm: '2.5rem' },
-              letterSpacing: '1px',
-            }}
-          >
-            Ophelia's Mental Weather Log
-          </Typography>
-          <Typography 
-            variant="subtitle1" 
-            sx={{
-              color: '#FFB6C1',
-              mt: 1,
-              fontSize: { xs: '0.95rem', sm: '1.1rem' },
-              fontStyle: 'italic',
-            }}
-          >
-            {copy.headerSubtitle}
-          </Typography>
-        </TitleBox>
+    <div className="app">
+      <header className="topbar">
+        <button type="button" className="brand" onClick={goHome}>
+          <PansyMark />
+          <span className="brand-copy">
+            <span className="brand-kicker">Ophelia's</span>
+            <span className="brand-title">Pansies</span>
+          </span>
+        </button>
+        {welcomed && (
+          <SectionNav labels={tabs} current={currentTab} onSelect={setCurrentTab} />
+        )}
+        <button type="button" className="btn btn-ghost theme-btn" onClick={onToggleTheme}>
+          {mode === "dark" ? "Light" : "Dark"}
+        </button>
+      </header>
 
-        <TabsContainer elevation={0}>
-          <Tabs
-            value={currentTab}
-            onChange={handleTabChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
-            aria-label="check-in forms"
-            sx={{
-              '& .MuiTabs-indicator': {
-                backgroundColor: '#FF69B4',
-                height: '4px',
-                borderRadius: '4px',
-              },
-            }}
-          >
-            {tabs.map((label, i) => (
-              <Tab
-                key={i}
-                label={label}
-                id={`tab-${i}`}
-                aria-controls={`tabpanel-${i}`}
-                sx={{
-                  fontWeight: 600,
-                  minHeight: '48px',
-                  px: { xs: 1.5, sm: 2 },
-                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                  '&.Mui-selected': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    color: '#FF69B4',
-                    borderRadius: '12px',
-                  },
-                }}
-              />
-            ))}
-          </Tabs>
-        </TabsContainer>
-
-        <TabPanelWrapper>
-          <TabPanel value={currentTab} index={0}>
-            <MorningCheckIn />
-          </TabPanel>
-
-          <TabPanel value={currentTab} index={1}>
-            <EveningCheckIn onSaved={handleEveningSaved} />
-          </TabPanel>
-
-          <TabPanel value={currentTab} index={2}>
-            <div data-testid="animal-card">
-              <AnimalDisplay refreshKey={analysisKey} />
-            </div>
-          </TabPanel>
-
-          <TabPanel value={currentTab} index={3}>
-            <Suspense fallback={null}>
-              <History />
-            </Suspense>
-          </TabPanel>
-
-          <TabPanel value={currentTab} index={4}>
-            <CoffeeTab />
-          </TabPanel>
-
-          <TabPanel value={currentTab} index={5}>
-            <WasserTab />
-          </TabPanel>
-
-          <TabPanel value={currentTab} index={6}>
-            <ZiggyStardustOMeter />
-          </TabPanel>
-
-          <TabPanel value={currentTab} index={6}>
-            <Suspense fallback={null}>
-              <QuestionnaireEditor />
-            </Suspense>
-          </TabPanel>
-        </TabPanelWrapper>
-      </KawaiiContainer>
-    </>
-  );
+      {welcomed ? (
+        <>
+          <p className="today">{todayLabel(now)}</p>
+          <h1 className="greeting">{greeting(now)}</h1>
+          <p className="lede">{copy.headerSubtitle}</p>
+          <div className="screen">
+            <TabPanel value={currentTab} index={0}>
+              <MorningCheckIn />
+            </TabPanel>
+            <TabPanel value={currentTab} index={1}>
+              <EveningCheckIn onSaved={handleEveningSaved} />
+            </TabPanel>
+            <TabPanel value={currentTab} index={2}>
+              <div data-testid="animal-card">
+                <AnimalDisplay refreshKey={analysisKey} />
+              </div>
+            </TabPanel>
+            <TabPanel value={currentTab} index={3}>
+              <Suspense fallback={null}>
+                <History />
+              </Suspense>
+            </TabPanel>
+            <TabPanel value={currentTab} index={4}>
+              <CoffeeTab />
+            </TabPanel>
+            <TabPanel value={currentTab} index={5}>
+              <WasserTab />
+            </TabPanel>
+            <TabPanel value={currentTab} index={6}>
+              <ZiggyStardustOMeter />
+            </TabPanel>
+            <TabPanel value={currentTab} index={7}>
+              <Suspense fallback={null}>
+                <QuestionnaireEditor />
+              </Suspense>
+            </TabPanel>
+          </div>
+        </>
+      ) : (
+        <Welcome onBegin={begin} />
+      )}
+    </div>
+  )
 }

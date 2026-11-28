@@ -56,19 +56,19 @@ describe('archetype sets', () => {
   it('lists animals first, then flowers, with derived copy', () => {
     expect(archetypeSetList.map((set) => set.id)).toEqual(['animals', 'flowers'])
     expect(archetypeCopy(getArchetypeSet('animals'))).toEqual({
-      tabLabel: '🐾 My Animal',
+      tabLabel: 'My Animal',
       cardTitle: 'Your Animal Archetype Today',
-      previewLabel: '🎪 Preview all animals',
-      placeholder: "Your animal archetype is waiting! Complete today's evening check-in to hatch it 🌸",
-      headerSubtitle: '🌸 Discover your animal archetype today! 🌸',
+      previewLabel: 'Preview all animals',
+      placeholder: "Your animal archetype is waiting. Complete today's evening check-in to hatch it.",
+      headerSubtitle: "Pansies, that's for thoughts. Today's animal follows your check-in.",
       editorNote: 'Animal archetypes use the built-in evening questions; hiding them counts as 0.',
     })
     expect(archetypeCopy(getArchetypeSet('flowers'))).toEqual({
-      tabLabel: '🌸 My Flower',
+      tabLabel: 'My Flower',
       cardTitle: 'Your Flower Archetype Today',
-      previewLabel: '🎪 Preview all flowers',
-      placeholder: "Your flower archetype is waiting! Complete today's evening check-in to see it bloom 🌸",
-      headerSubtitle: '🌸 Discover your flower archetype today! 🌸',
+      previewLabel: 'Preview all flowers',
+      placeholder: "Your flower archetype is waiting. Complete today's evening check-in to see it bloom.",
+      headerSubtitle: "Pansies, that's for thoughts. Today's flower follows your check-in.",
       editorNote: 'Flower archetypes use the built-in evening questions; hiding them counts as 0.',
     })
     expect(isArchetypeSetId('animals')).toBe(true)
