@@ -5,6 +5,12 @@ const SAMPLE = { averageMood: 4, averageEnergy: 4, selfWorth: 4 }
 const SAMPLE_ANIMAL = analyzeSet(SAMPLE, getArchetypeSet('animals')).archetype.name
 const SAMPLE_FLOWER = analyzeSet(SAMPLE, getArchetypeSet('flowers')).archetype.name
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('ophelia-pansies-seen-welcome', '1')
+  })
+})
+
 test('loads and switches tabs', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('tab', { name: /Morning Check-In/ })).toBeVisible()
@@ -87,7 +93,6 @@ test('preview mode cycles through animals and exits', async ({ page }) => {
 
 test('history lists past days, newest first', async ({ page }) => {
   await page.addInitScript(() => {
-    if (localStorage.length) return
     const entry = { version: '1.0.0', data: { averageMood: 7, averageEnergy: 6 } }
     localStorage.setItem('mental-weather:evening_2025-01-01', JSON.stringify(entry))
     localStorage.setItem('mental-weather:evening_2025-01-03', JSON.stringify(entry))
@@ -135,7 +140,7 @@ test('switching archetype set updates labels, the card, and history', async ({ p
     localStorage.setItem('mental-weather:evening_2025-06-01', JSON.stringify(entry))
   }, SAMPLE)
   await page.goto('/')
-  await expect(page.getByText('🌸 Discover your animal archetype today! 🌸')).toBeVisible()
+  await expect(page.getByText("Pansies, that's for thoughts. Today's animal follows your check-in.")).toBeVisible()
 
   await page.getByRole('tab', { name: /My Animal/ }).click()
   const card = page.getByTestId('animal-card')
@@ -148,7 +153,7 @@ test('switching archetype set updates labels, the card, and history', async ({ p
   expect(overflow).toBeLessThanOrEqual(0)
 
   await setPicker.getByRole('button', { name: "Ophelia's Flowers" }).click()
-  await expect(page.getByText('🌸 Discover your flower archetype today! 🌸')).toBeVisible()
+  await expect(page.getByText("Pansies, that's for thoughts. Today's flower follows your check-in.")).toBeVisible()
   await expect(page.getByRole('tab', { name: /My Flower/ })).toHaveAttribute('aria-selected', 'true')
   await expect(card).toContainText('see it bloom')
   await expect(card).not.toContainText('hatch it')
@@ -164,7 +169,7 @@ test('switching archetype set updates labels, the card, and history', async ({ p
   await expect(page.getByTestId('history-item')).not.toContainText(SAMPLE_ANIMAL)
 
   await page.reload()
-  await expect(page.getByText('🌸 Discover your flower archetype today! 🌸')).toBeVisible()
+  await expect(page.getByText("Pansies, that's for thoughts. Today's flower follows your check-in.")).toBeVisible()
   await page.getByRole('tab', { name: /My Flower/ }).click()
   await expect(page.getByTestId('archetype-set').getByRole('button', { name: "Ophelia's Flowers" })).toHaveAttribute('aria-pressed', 'true')
 
@@ -184,7 +189,7 @@ test('switching archetype set updates labels, the card, and history', async ({ p
   await expect(past).not.toContainText(SAMPLE_FLOWER)
 
   await page.reload()
-  await expect(page.getByText('🌸 Discover your animal archetype today! 🌸')).toBeVisible()
+  await expect(page.getByText("Pansies, that's for thoughts. Today's animal follows your check-in.")).toBeVisible()
   await page.getByRole('tab', { name: /History/ }).click()
   await expect(page.getByTestId('history-item').filter({ hasText: 'Jun 1' })).toContainText(SAMPLE_ANIMAL)
 })
@@ -221,7 +226,7 @@ test('coffee events are logged, persisted and undoable', async ({ page }) => {
 
 test('importing a backup updates the archetype set without a reload', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('🌸 Discover your animal archetype today! 🌸')).toBeVisible()
+  await expect(page.getByText("Pansies, that's for thoughts. Today's animal follows your check-in.")).toBeVisible()
   await page.getByRole('tab', { name: /History/ }).click()
 
   const file = (name: string, settings: { medicationName: string; archetypeSet?: string }) => ({
@@ -234,13 +239,13 @@ test('importing a backup updates the archetype set without a reload', async ({ p
     file('flowers.json', { medicationName: 'Promethazine', archetypeSet: 'flowers' }),
   )
   await expect(page.getByText('Imported 0 entries')).toBeVisible()
-  await expect(page.getByText('🌸 Discover your flower archetype today! 🌸')).toBeVisible()
+  await expect(page.getByText("Pansies, that's for thoughts. Today's flower follows your check-in.")).toBeVisible()
   await page.getByRole('tab', { name: /My Flower/ }).click()
   await expect(page.getByRole('button', { name: "Ophelia's Flowers" })).toHaveAttribute('aria-pressed', 'true')
 
   await page.getByRole('tab', { name: /History/ }).click()
   await page.getByTestId('import-input').setInputFiles(file('legacy.json', { medicationName: 'Promethazine' }))
-  await expect(page.getByText('🌸 Discover your animal archetype today! 🌸')).toBeVisible()
+  await expect(page.getByText("Pansies, that's for thoughts. Today's animal follows your check-in.")).toBeVisible()
   await page.getByRole('tab', { name: /My Animal/ }).click()
   await expect(page.getByTestId('archetype-set').getByRole('button', { name: 'Animals' })).toHaveAttribute('aria-pressed', 'true')
 })
@@ -255,4 +260,37 @@ test('ziggy meter reads today\'s check-in', async ({ page }) => {
   await expect(page.getByText('Morning Check-In saved')).toBeVisible()
   await page.getByRole('tab', { name: /Ziggy/ }).click()
   await expect(page.getByText('5 / 10')).toBeVisible()
+})
+
+test('welcome greets a first visit', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.removeItem('ophelia-pansies-seen-welcome')
+  })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Welcome' })).toBeVisible()
+  await expect(page.getByText("Pansies, that's for thoughts.")).toBeVisible()
+  await page.getByRole('button', { name: "Begin today's check-in" }).click()
+  await expect(page.getByRole('heading', { name: 'Morning Check-In' })).toBeVisible()
+  const seen = await page.evaluate(() => localStorage.getItem('ophelia-pansies-seen-welcome'))
+  expect(seen).toBe('1')
+})
+
+test('theme toggle keeps the choice', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.getByRole('button', { name: 'Light' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  await page.getByRole('button', { name: 'Dark' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+})
+
+test('more menu reaches coffee on a narrow screen', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  await expect(page.getByRole('tab', { name: /Coffee/ })).toBeHidden()
+  await page.getByRole('button', { name: 'More' }).click()
+  await page.getByRole('tab', { name: /Coffee/ }).click()
+  await expect(page.getByText('No coffee logged yet.')).toBeVisible()
 })

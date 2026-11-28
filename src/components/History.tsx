@@ -46,9 +46,11 @@ function BackupControls({ onImported }: { onImported: () => void }) {
         <Button variant="outlined" onClick={() => input.current?.click()}>Import backup</Button>
         <input
           ref={input}
+          id="import-backup"
           type="file"
           accept="application/json,.json"
           hidden
+          aria-label="Import backup file"
           data-testid="import-input"
           onChange={(e) => {
             const f = e.target.files?.[0]
@@ -70,10 +72,10 @@ export default function History() {
 
   if (days.length === 0) {
     return (
-      <Box sx={{ p: 3, textAlign: "center" }}>
+      <Box sx={{ p: 2 }}>
         {backup}
-        <Typography sx={{ color: "#FF69B4" }}>
-          No past check-ins yet. Your evening check-ins will show up here 📖
+        <Typography color="text.secondary">
+          No past check-ins yet. Evening notes will gather here.
         </Typography>
       </Box>
     )
@@ -88,21 +90,21 @@ export default function History() {
           <Paper
             key={date}
             data-testid="history-item"
-            elevation={1}
-            sx={{ p: 2, borderRadius: "16px", background: a.archetype.bgColor }}
+            elevation={0}
+            sx={{ p: 2 }}
           >
-            <Typography sx={{ fontWeight: 700, color: a.archetype.color }}>
+            <Typography sx={{ fontWeight: 650 }}>
               {a.archetype.emoji} {a.archetype.name}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               {formatDate(date)}
             </Typography>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 1 }}>
-              <Chip size="small" label={`⚡ ${a.energyScore}`} />
-              <Chip size="small" label={`💖 ${a.moodScore}`} />
-              <Chip size="small" label={`🧠 ${a.cognitiveScore}`} />
-              <Chip size="small" label={`👥 ${a.socialScore}`} />
-              <Chip size="small" label={`😰 ${a.anxietyScore}`} />
+              <Chip size="small" variant="outlined" label={`Energy ${a.energyScore}`} />
+              <Chip size="small" variant="outlined" label={`Mood ${a.moodScore}`} />
+              <Chip size="small" variant="outlined" label={`Cognitive ${a.cognitiveScore}`} />
+              <Chip size="small" variant="outlined" label={`Social ${a.socialScore}`} />
+              <Chip size="small" variant="outlined" label={`Anxiety ${a.anxietyScore}`} />
             </Box>
           </Paper>
         )

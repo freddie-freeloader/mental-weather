@@ -1,6 +1,6 @@
-# Mood Tracker / "Ophelia's Mental Weather Log"
+# Ophelia's Pansies
 
-I want to build a mood tracker that is only used by me -- it's called "Ophelia's Mental Weather Log".
+A private mood check-in. The repository name stays `mental-weather`. It was first called "Ophelia's Mental Weather Log".
 
 ## Rough structure
 

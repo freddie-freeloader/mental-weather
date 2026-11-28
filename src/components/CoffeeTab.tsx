@@ -10,7 +10,13 @@ export default function CoffeeTab() {
   const cups = day.events.length
 
   return (
-    <Box sx={{ py: 2 }}>
+    <Box sx={{ py: 1 }}>
+      <Typography variant="h4" component="h2" gutterBottom>
+        Coffee
+      </Typography>
+      <Typography color="text.secondary" sx={{ mb: 2 }}>
+        Note a cup when you have one.
+      </Typography>
       <CoffeeOMeter cups={cups} />
       <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 2 }}>
         <Button variant="outlined" onClick={() => setDay(undoCoffeeEvent())} disabled={cups <= 0}>

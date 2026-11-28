@@ -41,7 +41,7 @@ const animalsSet = {
   noun: "animal",
   nounTitle: "Animal",
   plural: "animals",
-  verbPhrase: "hatch it 🌸",
+  verbPhrase: "hatch it",
   placeholderEmoji: "🥚",
   items: allAnimals,
 } satisfies ArchetypeSet
@@ -53,7 +53,7 @@ const flowersSet = {
   noun: "flower",
   nounTitle: "Flower",
   plural: "flowers",
-  verbPhrase: "see it bloom 🌸",
+  verbPhrase: "see it bloom",
   placeholderEmoji: "🌱",
   items: allFlowers,
 } satisfies ArchetypeSet
@@ -77,11 +77,11 @@ export function getArchetypeSet(id: ArchetypeSetId): ArchetypeSet {
 
 export function archetypeCopy(set: ArchetypeSet): ArchetypeCopy {
   return {
-    tabLabel: `${set.emoji} My ${set.nounTitle}`,
+    tabLabel: `My ${set.nounTitle}`,
     cardTitle: `Your ${set.nounTitle} Archetype Today`,
-    previewLabel: `🎪 Preview all ${set.plural}`,
-    placeholder: `Your ${set.noun} archetype is waiting! Complete today's evening check-in to ${set.verbPhrase}`,
-    headerSubtitle: `🌸 Discover your ${set.noun} archetype today! 🌸`,
+    previewLabel: `Preview all ${set.plural}`,
+    placeholder: `Your ${set.noun} archetype is waiting. Complete today's evening check-in to ${set.verbPhrase}.`,
+    headerSubtitle: `Pansies, that's for thoughts. Today's ${set.noun} follows your check-in.`,
     editorNote: `${set.nounTitle} archetypes use the built-in evening questions; hiding them counts as 0.`,
   }
 }

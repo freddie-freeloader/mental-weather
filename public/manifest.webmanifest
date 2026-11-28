@@ -1,0 +1,18 @@
+{
+  "name": "Ophelia's Pansies",
+  "short_name": "Pansies",
+  "description": "A quiet check-in for your thoughts and feelings. Pansies, that's for thoughts.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f1e6",
+  "theme_color": "#141c18",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
