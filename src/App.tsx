@@ -10,6 +10,9 @@ import ZiggyStardustOMeter from './components/ZiggyStardustOMeter';
 import CoffeeTab from './components/CoffeeTab';
 import WasserTab from './components/WasserTab';
 import AnimalDisplay from './components/AnimalDisplay';
+import { ArchetypeSetProvider } from './components/ArchetypeSetProvider';
+import { useArchetypeSet } from './components/useArchetypeSet';
+import { archetypeCopy } from './archetypes';
 import kawaiiTheme from './theme';
 
 // Custom styled components for kawaii look
@@ -72,17 +75,20 @@ const CloudDecoration = styled('div')({
   userSelect: 'none',
 });
 
-const TABS = [
-  '🌅 Morning Check-In',
-  '🌙 Evening Check-In',
-  '🐾 My Animal',
-  '📖 History',
-  '☕ Coffee',
-  '💦 Wasser',
-  '⚡ Ziggy',
-  '⚙️ Customize',
-];
 const TAB_ANIMAL = 2;
+
+function tabLabels(archetypeTab: string): string[] {
+  return [
+    '🌅 Morning Check-In',
+    '🌙 Evening Check-In',
+    archetypeTab,
+    '📖 History',
+    '☕ Coffee',
+    '💦 Wasser',
+    '⚡ Ziggy',
+    '⚙️ Customize',
+  ];
+}
 
 interface TabPanelProps {
   children: React.ReactNode;
@@ -104,6 +110,20 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 }
 
 export default function App() {
+  return (
+    <ThemeProvider theme={customKawaiiTheme}>
+      <CssBaseline />
+      <ArchetypeSetProvider>
+        <WeatherLog />
+      </ArchetypeSetProvider>
+    </ThemeProvider>
+  );
+}
+
+function WeatherLog() {
+  const { set } = useArchetypeSet();
+  const copy = archetypeCopy(set);
+  const tabs = tabLabels(copy.tabLabel);
   // mornings start on the morning form, afternoons on the evening one
   const [currentTab, setCurrentTab] = useState(() => (new Date().getHours() >= 16 ? 1 : 0));
   const [analysisKey, setAnalysisKey] = useState(0);
@@ -119,9 +139,7 @@ export default function App() {
   };
 
   return (
-    <ThemeProvider theme={customKawaiiTheme}>
-      <CssBaseline />
-      
+    <>
       {/* Floating decorations */}
       <CloudDecoration style={{ top: '20%', left: '5%', transform: 'scale(0.8)' }}>☁️</CloudDecoration>
       <CloudDecoration style={{ top: '15%', right: '8%', transform: 'scale(1.2)' }}>☁️</CloudDecoration>
@@ -153,7 +171,7 @@ export default function App() {
               fontStyle: 'italic',
             }}
           >
-            🌸 Discover your animal archetype today! 🌸
+            {copy.headerSubtitle}
           </Typography>
         </TitleBox>
 
@@ -173,9 +191,9 @@ export default function App() {
               },
             }}
           >
-            {TABS.map((label, i) => (
+            {tabs.map((label, i) => (
               <Tab
-                key={label}
+                key={i}
                 label={label}
                 id={`tab-${i}`}
                 aria-controls={`tabpanel-${i}`}
@@ -235,6 +253,6 @@ export default function App() {
           </TabPanel>
         </TabPanelWrapper>
       </KawaiiContainer>
-    </ThemeProvider>
+    </>
   );
 }

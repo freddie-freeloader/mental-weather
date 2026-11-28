@@ -3,7 +3,9 @@ import { useState, useEffect, useMemo } from "react"
 import { keyframes } from '@mui/system';
 import { styled } from '@mui/material/styles';
 import { loadToday } from "../storage"
-import { allAnimals, analyzeEvening, generateMockAnalysis } from "../animals"
+import { analyzeSet, archetypeCopy, previewArchetype } from "../archetypes"
+import ArchetypeSetPicker from "./ArchetypeSetPicker"
+import { useArchetypeSet } from "./useArchetypeSet"
 
 // Sparkle animation
 const sparkle = keyframes`
@@ -134,6 +136,8 @@ function makeSparkles() {
 }
 
 export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number }) {
+	const { set } = useArchetypeSet()
+	const copy = archetypeCopy(set)
 	const [previewIndex, setPreviewIndex] = useState<number | null>(null)
 	const [showSparkles, setShowSparkles] = useState(true)
 	const [sparkleSeed, setSparkleSeed] = useState(() => makeSparkles())
@@ -143,10 +147,10 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 		// refreshKey forces a re-read after a new check-in is saved
 		void refreshKey
 		const evening = loadToday<Record<string, number>>("evening")
-		return evening ? analyzeEvening(evening) : null
-	}, [refreshKey])
+		return evening ? analyzeSet(evening, set) : null
+	}, [refreshKey, set])
 
-	const analysis = previewIndex !== null ? generateMockAnalysis(previewIndex) : saved
+	const analysis = previewIndex !== null ? previewArchetype(set, previewIndex) : saved
 	const currentIndex = previewIndex ?? 0
 
 	useEffect(() => {
@@ -168,14 +172,15 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 				onClick={togglePreview}
 				data-testid="preview-toggle"
 			>
-				{previewMode ? '✖️ Exit preview' : '🎪 Preview all animals'}
+				{previewMode ? '✖️ Exit preview' : copy.previewLabel}
 			</KawaiiButton>
 		</Box>
 	)
 
-	const handleNext = () => setPreviewIndex((currentIndex + 1) % allAnimals.length)
-	const handlePrev = () => setPreviewIndex((currentIndex - 1 + allAnimals.length) % allAnimals.length)
-	const handleRandom = () => setPreviewIndex(Math.floor(Math.random() * allAnimals.length))
+	const count = set.items.length
+	const handleNext = () => setPreviewIndex((currentIndex + 1) % count)
+	const handlePrev = () => setPreviewIndex((currentIndex - 1 + count) % count)
+	const handleRandom = () => setPreviewIndex(Math.floor(Math.random() * count))
 
 	const sparkles = showSparkles && analysis
 		? sparkleSeed.map((sp, i) => (
@@ -195,6 +200,7 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 	if (!analysis) {
 		return (
 			<>
+			<ArchetypeSetPicker />
 			<Box
 				sx={{
 					p: { xs: 2, sm: 3 },
@@ -205,9 +211,9 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 					background: 'rgba(255, 255, 255, 0.5)',
 				}}
 			>
-				<Typography sx={{ fontSize: '2.5rem' }}>🥚</Typography>
+				<Typography sx={{ fontSize: '2.5rem' }}>{set.placeholderEmoji}</Typography>
 				<Typography variant="body1" sx={{ color: '#FF69B4', fontWeight: 600 }}>
-					Your animal archetype is waiting! Complete today's evening check-in to hatch it 🌸
+					{copy.placeholder}
 				</Typography>
 			</Box>
 			{previewToggle}
@@ -218,11 +224,12 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 	return (
 		<Fade in={true} timeout={1000}>
 			<Box sx={{ mb: 3 }}>
+				<ArchetypeSetPicker />
 				<AnimatedPaper 
 					elevation={3} 
 					sx={{
 						p: { xs: 2, sm: 4 },
-						background: analysis.animal.bgColor || 'linear-gradient(135deg, #FFF8F0, #FFE4E9)',
+						background: analysis.archetype.bgColor || 'linear-gradient(135deg, #FFF8F0, #FFE4E9)',
 						border: '2px solid #FFB6C1',
 						borderRadius: '24px',
 						position: 'relative',
@@ -236,13 +243,13 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 							variant="h4" 
 							gutterBottom
 							sx={{
-								color: analysis.animal.color || '#FF69B4',
+								color: analysis.archetype.color || '#FF69B4',
 								fontWeight: 700,
 								fontSize: { xs: '1.4rem', sm: '1.8rem' },
 								textShadow: '0 2px 4px rgba(0,0,0,0.1)',
 							}}
 						>
-							Your Animal Archetype Today
+							{copy.cardTitle}
 						</Typography>
 						
 						{previewMode && (
@@ -278,7 +285,7 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 							}}
 							>
 								<BounceEmoji>
-									{analysis.animal.emoji}
+									{analysis.archetype.emoji}
 								</BounceEmoji>
 							</Box>
 						</Zoom>
@@ -287,13 +294,13 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 							variant="h3" 
 							gutterBottom
 							sx={{
-								color: analysis.animal.color || '#FF69B4',
+								color: analysis.archetype.color || '#FF69B4',
 								fontWeight: 700,
 								fontSize: { xs: '1.9rem', sm: '2.5rem' },
 								mt: 1,
 							}}
 						>
-							{analysis.animal.name}
+							{analysis.archetype.name}
 						</Typography>
 
 						<Chip 
@@ -329,7 +336,7 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 									fontWeight: 500,
 								}}
 							>
-								{analysis.animal.message}
+								{analysis.archetype.message}
 							</Typography>
 							<Typography 
 								variant="body2" 
@@ -343,7 +350,7 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 									fontStyle: 'italic',
 								}}
 							>
-								{analysis.animal.description}
+								{analysis.archetype.description}
 							</Typography>
 						</Box>
 
@@ -360,7 +367,7 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 							variant="h6" 
 							gutterBottom
 							sx={{
-								color: analysis.animal.color || '#FF69B4',
+								color: analysis.archetype.color || '#FF69B4',
 								fontWeight: 600,
 								textAlign: 'center',
 							}}
@@ -370,10 +377,10 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 
 						<Box sx={{
 							display: 'grid', 
-							gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
+							gridTemplateColumns: 'repeat(auto-fit, minmax(168px, 1fr))', 
 							gap: 2,
 							justifyContent: 'center',
-							maxWidth: '600px',
+							maxWidth: '640px',
 							mx: 'auto',
 						}}
 						>
@@ -415,7 +422,7 @@ export default function AnimalDisplay({ refreshKey = 0 }: { refreshKey?: number 
 							}}
 						>
 							{previewMode ? 
-								`🎪 Preview: ${currentIndex + 1} of ${allAnimals.length} 🎪` : 
+								`🎪 Preview: ${currentIndex + 1} of ${count} 🎪` : 
 								`📅 Analysis from: ${new Date(analysis.timestamp).toLocaleString()}`
 							}
 						</Typography>

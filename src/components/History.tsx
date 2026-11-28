@@ -1,7 +1,8 @@
 import { useRef, useState } from "react"
 import { Alert, Box, Button, Chip, Paper, Typography } from "@mui/material"
 import { exportAll, importAll, listDays } from "../storage"
-import { analyzeEvening } from "../animals"
+import { analyzeSet } from "../archetypes"
+import { useArchetypeSet } from "./useArchetypeSet"
 
 function formatDate(date: string): string {
   const [y, m, d] = date.split("-").map(Number)
@@ -13,6 +14,7 @@ function formatDate(date: string): string {
 }
 
 function BackupControls({ onImported }: { onImported: () => void }) {
+  const { reload } = useArchetypeSet()
   const input = useRef<HTMLInputElement>(null)
   const [msg, setMsg] = useState<{ severity: "success" | "error"; text: string } | null>(null)
 
@@ -29,6 +31,7 @@ function BackupControls({ onImported }: { onImported: () => void }) {
   const upload = async (file: File) => {
     try {
       const n = importAll(await file.text())
+      reload()
       setMsg({ severity: "success", text: `Imported ${n} entries` })
       onImported()
     } catch (error) {
@@ -60,6 +63,7 @@ function BackupControls({ onImported }: { onImported: () => void }) {
 }
 
 export default function History() {
+  const { set } = useArchetypeSet()
   const [, refresh] = useState(0)
   const days = listDays<Record<string, number>>("evening")
   const backup = <BackupControls onImported={() => refresh((n) => n + 1)} />
@@ -79,16 +83,16 @@ export default function History() {
     <Box data-testid="history" sx={{ display: "grid", gap: 1.5 }}>
       {backup}
       {days.map(({ date, data }) => {
-        const a = analyzeEvening(data)
+        const a = analyzeSet(data, set)
         return (
           <Paper
             key={date}
             data-testid="history-item"
             elevation={1}
-            sx={{ p: 2, borderRadius: "16px", background: a.animal.bgColor }}
+            sx={{ p: 2, borderRadius: "16px", background: a.archetype.bgColor }}
           >
-            <Typography sx={{ fontWeight: 700, color: a.animal.color }}>
-              {a.animal.emoji} {a.animal.name}
+            <Typography sx={{ fontWeight: 700, color: a.archetype.color }}>
+              {a.archetype.emoji} {a.archetype.name}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               {formatDate(date)}
