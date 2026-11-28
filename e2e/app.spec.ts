@@ -22,12 +22,14 @@ test('loads and switches tabs', async ({ page }) => {
 
 test('morning check-in persists to localStorage', async ({ page }) => {
   await page.goto('/')
+  await page.getByRole('tab', { name: /Morning Check-In/ }).click()
   await page.getByRole('button', { name: 'Submit Morning Check-In' }).click()
   await expect(page.getByText('Morning check-in saved')).toBeVisible()
   const keys = await page.evaluate(() => Object.keys(localStorage))
   expect(keys.some((k) => k.startsWith('mental-weather:morning_'))).toBe(true)
 
   await page.reload()
+  await page.getByRole('tab', { name: /Morning Check-In/ }).click()
   await expect(page.getByRole('heading', { name: 'Morning Check-In' })).toBeVisible()
 })
 
@@ -263,6 +265,7 @@ test('ziggy meter reads today\'s check-in', async ({ page }) => {
 })
 
 test('welcome greets a first visit', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-06-15T10:00:00') })
   await page.addInitScript(() => {
     localStorage.removeItem('ophelia-pansies-seen-welcome')
   })
@@ -273,6 +276,16 @@ test('welcome greets a first visit', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Morning Check-In' })).toBeVisible()
   const seen = await page.evaluate(() => localStorage.getItem('ophelia-pansies-seen-welcome'))
   expect(seen).toBe('1')
+})
+
+test('greeting follows the day when the page is visible again', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-06-15T10:00:00') })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Good morning' })).toBeVisible()
+  await page.clock.setFixedTime(new Date('2026-06-16T20:00:00'))
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
+  await expect(page.getByRole('heading', { name: 'Good evening' })).toBeVisible()
+  await expect(page.locator('.today')).toContainText('16')
 })
 
 test('theme toggle keeps the choice', async ({ page }) => {
@@ -292,5 +305,21 @@ test('more menu reaches coffee on a narrow screen', async ({ page }) => {
   await expect(page.getByRole('tab', { name: /Coffee/ })).toBeHidden()
   await page.getByRole('button', { name: 'More' }).click()
   await page.getByRole('tab', { name: /Coffee/ }).click()
+  await expect(page.getByRole('button', { name: 'More' })).toBeFocused()
   await expect(page.getByText('No coffee logged yet.')).toBeVisible()
+})
+
+test('more menu stays open while arrowing and restores focus', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  const more = page.getByRole('button', { name: 'More' })
+  await more.click()
+  const coffee = page.getByRole('tab', { name: /Coffee/ })
+  await coffee.focus()
+  await page.keyboard.press('ArrowDown')
+  await expect(coffee).toBeVisible()
+  await expect(page.getByRole('tab', { name: /Wasser/ })).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(coffee).toBeHidden()
+  await expect(more).toBeFocused()
 })

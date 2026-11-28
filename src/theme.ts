@@ -21,6 +21,7 @@ interface Ink {
   successBg: string
   infoBg: string
   focus: string
+  thumb: string
   nav: string
   wait: string
   washSage: string
@@ -46,6 +47,7 @@ const darkInk: Ink = {
   successBg: "#1a3328",
   infoBg: "#24302b",
   focus: "#d5ead0",
+  thumb: "#4a9a72",
   nav: "#24362d",
   wait: "#e2c27a",
   washSage: "rgba(120, 168, 140, 0.18)",
@@ -71,6 +73,7 @@ const lightInk: Ink = {
   successBg: "#e4f0e7",
   infoBg: "#efe8dc",
   focus: "#1a4030",
+  thumb: "#1f4d38",
   nav: "#e3eee6",
   wait: "#8a5a12",
   washSage: "rgba(47, 107, 78, 0.16)",
@@ -203,13 +206,16 @@ export function createPansiesTheme(mode: PaletteMode): Theme {
         styleOverrides: {
           root: {
             color: c.inkSoft,
-            "&.Mui-focused": { color: c.moss },
+            "&.Mui-focused": { color: c.focus },
           },
         },
       },
       MuiFormLabel: {
         styleOverrides: {
-          root: { color: c.inkSoft },
+          root: {
+            color: c.inkSoft,
+            "&.Mui-focused": { color: c.focus },
+          },
         },
       },
       MuiSlider: {
@@ -218,8 +224,8 @@ export function createPansiesTheme(mode: PaletteMode): Theme {
           thumb: {
             width: 22,
             height: 22,
-            backgroundColor: c.moss,
-            border: `2px solid ${c.sheet}`,
+            backgroundColor: c.thumb,
+            border: `2px solid ${c.focus}`,
             "&.Mui-focusVisible": focusRing(c.focus),
           },
           track: { height: 8, border: "none" },

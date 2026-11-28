@@ -96,7 +96,20 @@ function WeatherLog({ mode, onToggleTheme }: { mode: InkMode; onToggleTheme: () 
       return false
     }
   })
-  const [now] = useState(() => new Date())
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const refresh = () => setNow(new Date())
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh()
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    const timer = window.setInterval(refresh, 60_000)
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible)
+      window.clearInterval(timer)
+    }
+  }, [])
 
   const begin = () => {
     try {
